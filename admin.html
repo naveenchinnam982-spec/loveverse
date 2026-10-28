@@ -351,6 +351,12 @@
       <div class="table-controls">
         <input type="text" id="filterSearch" class="input-search" placeholder="🔍 Search Visitor ID, OS..." oninput="onFilterChange()">
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <select id="filterDate" class="select-filter" onchange="onFilterChange()">
+            <option value="All">All Dates</option>
+            <option value="Today">Today</option>
+            <option value="Yesterday">Yesterday</option>
+            <option value="7Days">Last 7 Days</option>
+          </select>
           <select id="filterSource" class="select-filter" onchange="onFilterChange()">
             <option value="All">All Sources</option>
             <option value="Instagram">Instagram</option>
@@ -364,6 +370,10 @@
             <option value="Mobile">Mobile</option>
             <option value="Desktop">Desktop</option>
             <option value="Tablet">Tablet</option>
+          </select>
+          <select id="filterSort" class="select-filter" onchange="onFilterChange()">
+            <option value="desc">Newest First</option>
+            <option value="asc">Oldest First</option>
           </select>
         </div>
       </div>
@@ -585,13 +595,17 @@
     const search = document.getElementById('filterSearch').value.trim();
     const source = document.getElementById('filterSource').value;
     const device = document.getElementById('filterDevice').value;
+    const dateFilter = document.getElementById('filterDate') ? document.getElementById('filterDate').value : 'All';
+    const sortOrder = document.getElementById('filterSort') ? document.getElementById('filterSort').value : 'desc';
 
     const query = new URLSearchParams({
       page: currentPage,
       limit: 10,
       search,
       source,
-      device
+      device,
+      dateFilter,
+      sortOrder
     });
 
     try {

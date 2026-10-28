@@ -189,6 +189,23 @@ function getVisitorsList(events = [], query = {}) {
     list = list.filter(v => v.device.toLowerCase().includes(query.device.toLowerCase()));
   }
 
+  // Date filter (Today, Yesterday, Last 7 Days, All)
+  if (query.dateFilter && query.dateFilter !== 'All') {
+    const now = Date.now();
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const yesterdayStr = new Date(now - 86400000).toISOString().slice(0, 10);
+    const sevenDaysAgo = now - 7 * 86400000;
+
+    list = list.filter(v => {
+      const vDate = (v.last_visit || '').slice(0, 10);
+      const vTime = new Date(v.last_visit || 0).getTime();
+      if (query.dateFilter === 'Today') return vDate === todayStr;
+      if (query.dateFilter === 'Yesterday') return vDate === yesterdayStr;
+      if (query.dateFilter === '7Days') return vTime >= sevenDaysAgo;
+      return true;
+    });
+  }
+
   // Sorting
   const sortBy = query.sortBy || 'last_visit';
   const sortOrder = query.sortOrder === 'asc' ? 1 : -1;
