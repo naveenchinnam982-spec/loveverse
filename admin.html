@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LoveVerse — Admin Analytics Dashboard</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: #0f021f;
+    color: #fff0f3;
+    min-height: 100vh;
+    padding: 20px;
+    background-image: radial-gradient(circle at 15% 15%, rgba(201, 24, 74, 0.15) 0%, transparent 40%),
+                      radial-gradient(circle at 85% 85%, rgba(123, 45, 139, 0.15) 0%, transparent 40%);
+  }
+
+  .container { max-width: 1200px; margin: 0 auto; }
+
+  /* Header */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 133, 161, 0.2);
+    border-radius: 16px;
+    backdrop-filter: blur(12px);
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .header h1 {
+    font-size: 20px;
+    font-weight: 800;
+    color: #ff85a1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .header-actions { display: flex; align-items: center; gap: 10px; }
+
+  /* Buttons */
+  .btn {
+    background: linear-gradient(135deg, #c9184a, #7b2d8b);
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+  .btn-outline {
+    background: transparent;
+    border: 1px solid rgba(255, 133, 161, 0.3);
+    color: #ffb3c1;
+  }
+  .btn-outline:hover { background: rgba(255, 133, 161, 0.1); }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+
+  /* Overview Cards Grid */
+  .grid-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .card-metric {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 133, 161, 0.15);
+    border-radius: 14px;
+    padding: 18px 20px;
+    backdrop-filter: blur(8px);
+    position: relative;
+    overflow: hidden;
+  }
+  .card-metric::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, #ff4d6d, #f8c630);
+  }
+  .metric-label { font-size: 12px; color: #c9899f; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .metric-value { font-size: 28px; font-weight: 900; color: #fff; margin: 8px 0 4px; }
+  .metric-desc { font-size: 11px; color: #ff85a1; }
+
+  /* Charts Section */
+  .grid-charts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+  .card-chart {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 133, 161, 0.15);
+    border-radius: 16px;
+    padding: 20px;
+  }
+  .chart-title { font-size: 14px; font-weight: 700; color: #ffb3c1; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+  .chart-bars { display: flex; flex-direction: column; gap: 8px; }
+  .bar-row { display: flex; align-items: center; gap: 10px; font-size: 12px; }
+  .bar-label { width: 110px; color: #c9899f; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-track { flex: 1; height: 8px; background: rgba(255, 255, 255, 0.08); border-radius: 4px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #c9184a, #ff4d6d); }
+  .bar-val { width: 35px; text-align: right; color: #fff; font-weight: 700; }
+
+  /* Daily canvas chart */
+  canvas#chartDaily { width: 100%; height: 150px; }
+
+  /* Table Section */
+  .card-table {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 133, 161, 0.15);
+    border-radius: 16px;
+    padding: 20px;
+    overflow: hidden;
+  }
+  .table-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .input-search, .select-filter {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 133, 161, 0.2);
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    outline: none;
+  }
+  .input-search { width: 220px; }
+  .select-filter option { background: #1a0035; color: #fff; }
+
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
+  th { padding: 12px 10px; color: #c9899f; font-weight: 700; border-bottom: 1px solid rgba(255, 133, 161, 0.2); }
+  td { padding: 12px 10px; border-bottom: 1px solid rgba(255, 133, 161, 0.08); color: #ffe0e8; }
+  tr:hover td { background: rgba(255, 77, 109, 0.04); }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .badge-ig { background: rgba(199, 125, 255, 0.2); color: #c77dff; border: 1px solid rgba(199, 125, 255, 0.4); }
+  .badge-direct { background: rgba(255, 255, 255, 0.1); color: #c9899f; }
+  .badge-yes { background: rgba(46, 204, 113, 0.2); color: #2ecc71; border: 1px solid rgba(46, 204, 113, 0.4); }
+  .badge-no { background: rgba(231, 76, 60, 0.2); color: #e74c3c; border: 1px solid rgba(231, 76, 60, 0.4); }
+
+  /* Pagination */
+  .pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+    font-size: 12px;
+    color: #c9899f;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal-card {
+    background: #1a0035;
+    border: 1px solid rgba(255, 133, 161, 0.3);
+    border-radius: 18px;
+    max-width: 540px;
+    width: 100%;
+    padding: 24px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+  .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid rgba(255,133,161,0.2); padding-bottom: 10px; }
+  .modal-title { font-size: 16px; font-weight: 800; color: #ff85a1; }
+  .close-btn { background: none; border: none; font-size: 20px; color: #c9899f; cursor: pointer; }
+
+  .detail-row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid rgba(255,133,161,0.1); font-size: 13px; }
+  .detail-label { color: #c9899f; }
+  .detail-val { font-weight: 700; color: #fff; text-align: right; }
+
+  /* Timeline */
+  .timeline { margin-top: 18px; }
+  .tl-item { position: relative; padding-left: 20px; padding-bottom: 14px; border-left: 2px solid rgba(255, 133, 161, 0.3); font-size: 12px; }
+  .tl-item::before { content: ''; position: absolute; left: -5px; top: 2px; width: 8px; height: 8px; border-radius: 50%; background: #ff4d6d; }
+  .tl-time { color: #c9899f; font-size: 11px; margin-bottom: 2px; }
+  .tl-desc { color: #fff; font-weight: 600; }
+
+  /* Login Card */
+  .login-wrap {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .login-card {
+    background: rgba(26, 0, 53, 0.95);
+    border: 1px solid rgba(255, 133, 161, 0.3);
+    border-radius: 20px;
+    padding: 36px 30px;
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+  }
+  .login-input {
+    width: 100%;
+    padding: 12px 16px;
+    margin: 18px 0;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 133, 161, 0.25);
+    color: #fff;
+    font-size: 14px;
+    outline: none;
+    text-align: center;
+  }
+  .login-error { color: #ff5050; font-size: 12px; margin-top: -10px; margin-bottom: 12px; display: none; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Login Screen -->
+  <div id="loginSection" class="login-wrap">
+    <div class="login-card">
+      <div style="font-size: 48px; margin-bottom: 12px;">🔐</div>
+      <h2 style="color: #ff85a1; font-size: 22px; font-weight: 800; margin-bottom: 6px;">LoveVerse Admin</h2>
+      <p style="color: #c9899f; font-size: 13px;">Enter admin password to view visitor analytics</p>
+      <input type="password" id="adminPasswordInput" class="login-input" placeholder="Enter Admin Password" onkeydown="if(event.key==='Enter')doLogin()">
+      <div id="loginError" class="login-error">Incorrect password. Please try again.</div>
+      <button class="btn" style="width: 100%; justify-content: center;" onclick="doLogin()">Unlock Dashboard 💖</button>
+    </div>
+  </div>
+
+  <!-- Dashboard Screen (Protected) -->
+  <div id="dashboardSection" style="display: none;">
+    <!-- Header -->
+    <header class="header">
+      <h1>💖 LoveVerse <span>Visitor Analytics</span></h1>
+      <div class="header-actions">
+        <label style="font-size: 12px; color: #c9899f; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+          <input type="checkbox" id="autoRefreshCheck" checked onchange="toggleAutoRefresh()"> Auto-refresh (15s)
+        </label>
+        <button class="btn btn-outline btn-sm" onclick="fetchDashboardData()">🔄 Refresh</button>
+        <button class="btn btn-sm" onclick="exportCSV()">📥 Export CSV</button>
+        <button class="btn btn-outline btn-sm" onclick="doLogout()">🚪 Logout</button>
+      </div>
+    </header>
+
+    <!-- Overview Metrics Cards -->
+    <div class="grid-overview">
+      <div class="card-metric">
+        <div class="metric-label">Total Visits</div>
+        <div class="metric-value" id="valTotalVisits">0</div>
+        <div class="metric-desc">Lifetime sessions</div>
+      </div>
+      <div class="card-metric">
+        <div class="metric-label">Unique Visitors</div>
+        <div class="metric-value" id="valUniqueVisitors">0</div>
+        <div class="metric-desc">Distinct visitor devices</div>
+      </div>
+      <div class="card-metric">
+        <div class="metric-label">Today's Visitors</div>
+        <div class="metric-value" id="valTodayVisitors">0</div>
+        <div class="metric-desc">Active today</div>
+      </div>
+      <div class="card-metric">
+        <div class="metric-label">Instagram Traffic</div>
+        <div class="metric-value" id="valIgVisitors" style="color: #c77dff;">0</div>
+        <div class="metric-desc">Instagram referrals</div>
+      </div>
+      <div class="card-metric">
+        <div class="metric-label">Instagram Clicks</div>
+        <div class="metric-value" id="valIgClicks" style="color: #f8c630;">0</div>
+        <div class="metric-desc">Clicks on @Missyouyour6</div>
+      </div>
+      <div class="card-metric">
+        <div class="metric-label">New Visitors</div>
+        <div class="metric-value" id="valNewVisitors">0</div>
+        <div class="metric-desc">First-time visitors</div>
+      </div>
+      <div class="card-metric">
+        <div class="metric-label">Returning Visitors</div>
+        <div class="metric-value" id="valReturningVisitors">0</div>
+        <div class="metric-desc">Repeat visitors</div>
+      </div>
+      <div class="card-metric">
+        <div class="metric-label">Page Views</div>
+        <div class="metric-value" id="valPageViews">0</div>
+        <div class="metric-desc">Total tab & feature views</div>
+      </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="grid-charts">
+      <!-- Daily Trend Chart -->
+      <div class="card-chart">
+        <div class="chart-title">
+          <span>📈 Visits Last 7 Days</span>
+          <span style="font-size: 11px; color: #ff85a1;">Real Data</span>
+        </div>
+        <canvas id="chartDaily" height="150"></canvas>
+      </div>
+
+      <!-- Traffic Sources Breakdown -->
+      <div class="card-chart">
+        <div class="chart-title">🌐 Traffic Sources</div>
+        <div class="chart-bars" id="sourcesBars"></div>
+      </div>
+
+      <!-- Devices Breakdown -->
+      <div class="card-chart">
+        <div class="chart-title">📱 Devices</div>
+        <div class="chart-bars" id="devicesBars"></div>
+      </div>
+
+      <!-- Browsers Breakdown -->
+      <div class="card-chart">
+        <div class="chart-title">🌐 Browsers</div>
+        <div class="chart-bars" id="browsersBars"></div>
+      </div>
+    </div>
+
+    <!-- Visitors Table -->
+    <div class="card-table">
+      <div class="table-controls">
+        <input type="text" id="filterSearch" class="input-search" placeholder="🔍 Search Visitor ID, OS..." oninput="onFilterChange()">
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <select id="filterSource" class="select-filter" onchange="onFilterChange()">
+            <option value="All">All Sources</option>
+            <option value="Instagram">Instagram</option>
+            <option value="Direct">Direct / Unknown</option>
+            <option value="Google">Google</option>
+            <option value="Facebook">Facebook</option>
+            <option value="WhatsApp">WhatsApp</option>
+          </select>
+          <select id="filterDevice" class="select-filter" onchange="onFilterChange()">
+            <option value="All">All Devices</option>
+            <option value="Mobile">Mobile</option>
+            <option value="Desktop">Desktop</option>
+            <option value="Tablet">Tablet</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Visitor ID</th>
+              <th>Date & Time</th>
+              <th>Source</th>
+              <th>Device</th>
+              <th>Browser</th>
+              <th>OS</th>
+              <th>Location</th>
+              <th>Response</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="visitorsTableBody">
+            <tr><td colspan="9" style="text-align:center; padding: 30px; color: #c9899f;">Loading real visitor records...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination">
+        <span id="pageInfo">Showing page 1</span>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-outline btn-sm" id="btnPrevPage" onclick="changePage(-1)">← Prev</button>
+          <button class="btn btn-outline btn-sm" id="btnNextPage" onclick="changePage(1)">Next →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Visitor Detail Modal -->
+<div id="detailModal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div class="modal-title" id="modalVisitorId">Visitor Details</div>
+      <button class="close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modalBody">
+      <!-- Injected by script -->
+    </div>
+  </div>
+</div>
+
+<script>
+  let authToken = sessionStorage.getItem('lv_admin_token') || '';
+  let currentPage = 1;
+  let autoRefreshTimer = null;
+
+  // Initialize
+  window.addEventListener('DOMContentLoaded', () => {
+    if (authToken) {
+      showDashboard();
+    }
+  });
+
+  // Authentication
+  async function doLogin() {
+    const pwd = document.getElementById('adminPasswordInput').value.trim();
+    if (!pwd) return;
+
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: pwd })
+      });
+      const data = await res.json();
+      if (data.success && data.token) {
+        authToken = data.token;
+        sessionStorage.setItem('lv_admin_token', authToken);
+        showDashboard();
+      } else {
+        showLoginError();
+      }
+    } catch (e) {
+      showLoginError();
+    }
+  }
+
+  function showLoginError() {
+    document.getElementById('loginError').style.display = 'block';
+  }
+
+  function doLogout() {
+    authToken = '';
+    sessionStorage.removeItem('lv_admin_token');
+    document.getElementById('dashboardSection').style.display = 'none';
+    document.getElementById('loginSection').style.display = 'flex';
+  }
+
+  function showDashboard() {
+    document.getElementById('loginSection').style.display = 'none';
+    document.getElementById('dashboardSection').style.display = 'block';
+    fetchDashboardData();
+    toggleAutoRefresh();
+  }
+
+  // Auto Refresh
+  function toggleAutoRefresh() {
+    if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+    const enabled = document.getElementById('autoRefreshCheck').checked;
+    if (enabled) {
+      autoRefreshTimer = setInterval(fetchDashboardData, 15000);
+    }
+  }
+
+  // Fetch Dashboard Stats & Visitor Table
+  async function fetchDashboardData() {
+    if (!authToken) return;
+    await Promise.all([fetchStats(), fetchVisitors()]);
+  }
+
+  async function fetchStats() {
+    try {
+      const res = await fetch('/api/admin/stats', {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+      if (res.status === 401) { doLogout(); return; }
+      const data = await res.json();
+      if (data.success) {
+        renderOverview(data.overview);
+        renderCharts(data.charts);
+      }
+    } catch (e) {
+      console.error('Error fetching stats:', e);
+    }
+  }
+
+  function renderOverview(ov) {
+    document.getElementById('valTotalVisits').textContent = ov.totalVisits || 0;
+    document.getElementById('valUniqueVisitors').textContent = ov.uniqueVisitors || 0;
+    document.getElementById('valTodayVisitors').textContent = ov.todayVisitors || 0;
+    document.getElementById('valIgVisitors').textContent = ov.instagramVisitors || 0;
+    document.getElementById('valIgClicks').textContent = ov.instagramClicks || 0;
+    document.getElementById('valNewVisitors').textContent = ov.newVisitors || 0;
+    document.getElementById('valReturningVisitors').textContent = ov.returningVisitors || 0;
+    document.getElementById('valPageViews').textContent = ov.pageViews || 0;
+  }
+
+  function renderCharts(ch) {
+    renderBarList('sourcesBars', ch.sources);
+    renderBarList('devicesBars', ch.devices);
+    renderBarList('browsersBars', ch.browsers);
+    drawDailyChart(ch.byDay || []);
+  }
+
+  function renderBarList(containerId, dataMap = {}) {
+    const el = document.getElementById(containerId);
+    el.innerHTML = '';
+    const entries = Object.entries(dataMap);
+    if (!entries.length) {
+      el.innerHTML = '<div style="font-size:12px; color:#c9899f;">No records yet</div>';
+      return;
+    }
+    const maxVal = Math.max(...entries.map(([k, v]) => v), 1);
+    entries.sort((a, b) => b[1] - a[1]);
+
+    entries.slice(0, 5).forEach(([label, val]) => {
+      const pct = Math.round((val / maxVal) * 100);
+      const row = document.createElement('div');
+      row.className = 'bar-row';
+      row.innerHTML = `
+        <div class="bar-label" title="${label}">${label}</div>
+        <div class="bar-track"><div class="bar-fill" style="width: ${pct}%"></div></div>
+        <div class="bar-val">${val}</div>
+      `;
+      el.appendChild(row);
+    });
+  }
+
+  function drawDailyChart(byDay) {
+    const canvas = document.getElementById('chartDaily');
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width = canvas.parentElement.clientWidth - 40;
+    const height = canvas.height = 130;
+    ctx.clearRect(0, 0, width, height);
+
+    if (!byDay.length) return;
+    const maxVal = Math.max(...byDay.map(d => d.count), 4);
+    const barWidth = Math.floor(width / (byDay.length * 1.8));
+    const step = width / byDay.length;
+
+    byDay.forEach((d, i) => {
+      const x = i * step + (step - barWidth) / 2;
+      const barH = Math.max(4, Math.round((d.count / maxVal) * (height - 35)));
+      const y = height - 25 - barH;
+
+      // Draw Bar
+      const grad = ctx.createLinearGradient(0, y, 0, height - 25);
+      grad.addColorStop(0, '#ff4d6d');
+      grad.addColorStop(1, '#c9184a');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.roundRect(x, y, barWidth, barH, [4, 4, 0, 0]);
+      ctx.fill();
+
+      // Draw Value
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(d.count, x + barWidth / 2, y - 5);
+
+      // Draw Date label
+      ctx.fillStyle = '#c9899f';
+      ctx.font = '9px sans-serif';
+      const shortDate = d.date.slice(5); // MM-DD
+      ctx.fillText(shortDate, x + barWidth / 2, height - 8);
+    });
+  }
+
+  // Visitors Table
+  async function fetchVisitors() {
+    const search = document.getElementById('filterSearch').value.trim();
+    const source = document.getElementById('filterSource').value;
+    const device = document.getElementById('filterDevice').value;
+
+    const query = new URLSearchParams({
+      page: currentPage,
+      limit: 10,
+      search,
+      source,
+      device
+    });
+
+    try {
+      const res = await fetch(`/api/admin/visitors?${query.toString()}`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        renderVisitorsTable(data.visitors);
+        renderPagination(data.pagination);
+      }
+    } catch (e) {
+      console.error('Error fetching visitors:', e);
+    }
+  }
+
+  function renderVisitorsTable(visitors = []) {
+    const tbody = document.getElementById('visitorsTableBody');
+    tbody.innerHTML = '';
+
+    if (!visitors.length) {
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 25px; color:#c9899f;">No visitor records match your filters.</td></tr>';
+      return;
+    }
+
+    visitors.forEach(v => {
+      const tr = document.createElement('tr');
+      const isIg = v.source && v.source.toLowerCase().includes('instagram');
+      const sourceBadge = isIg ? `<span class="badge badge-ig">Instagram</span>` : `<span class="badge badge-direct">${v.source}</span>`;
+      
+      let ansBadge = '—';
+      if (v.last_answer && v.last_answer.includes('YES')) ansBadge = `<span class="badge badge-yes">YES ❤️</span>`;
+      else if (v.last_answer && v.last_answer.includes('NO')) ansBadge = `<span class="badge badge-no">NO 💔</span>`;
+
+      const formattedTime = new Date(v.last_visit).toLocaleString('en-GB', {
+        day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true
+      });
+
+      tr.innerHTML = `
+        <td><code style="color: #ff85a1; font-weight:700;">${v.visitor_id}</code></td>
+        <td style="font-size: 12px; color: #ffb3c1;">${formattedTime}</td>
+        <td>${sourceBadge}</td>
+        <td>${v.device}</td>
+        <td>${v.browser}</td>
+        <td>${v.os}</td>
+        <td style="font-size: 12px; color: #c9899f;">${v.location || 'Global'}</td>
+        <td>${ansBadge}</td>
+        <td><button class="btn btn-outline btn-sm" onclick="viewVisitorDetail('${v.visitor_id}')">Details</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function renderPagination(pg) {
+    document.getElementById('pageInfo').textContent = `Page ${pg.page} of ${pg.totalPages} (${pg.total} visitors)`;
+    document.getElementById('btnPrevPage').disabled = pg.page <= 1;
+    document.getElementById('btnNextPage').disabled = pg.page >= pg.totalPages;
+  }
+
+  function changePage(delta) {
+    currentPage += delta;
+    if (currentPage < 1) currentPage = 1;
+    fetchVisitors();
+  }
+
+  function onFilterChange() {
+    currentPage = 1;
+    fetchVisitors();
+  }
+
+  // Detail Modal
+  async function viewVisitorDetail(visitorId) {
+    try {
+      const res = await fetch(`/api/admin/visitor/${visitorId}`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+      const data = await res.json();
+      if (data.success && data.visitor) {
+        renderModal(data.visitor);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function renderModal(v) {
+    document.getElementById('modalVisitorId').textContent = `Visitor: ${v.visitor_id}`;
+    const mb = document.getElementById('modalBody');
+
+    const firstStr = new Date(v.first_visit).toLocaleString('en-GB');
+    const lastStr = new Date(v.last_visit).toLocaleString('en-GB');
+
+    let tlHtml = '';
+    (v.timeline || []).forEach(item => {
+      const t = new Date(item.timestamp).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+      let desc = 'Opened website';
+      if (item.event_type === 'love_response_yes') desc = 'Clicked: YES ❤️';
+      else if (item.event_type === 'love_response_no') desc = 'Clicked: NO 💔';
+      else if (item.event_type === 'instagram_click') desc = 'Clicked Instagram Profile Link (@Missyouyour6)';
+      else if (item.event_type === 'page_view') desc = `Viewed page: ${item.page || 'Home'}`;
+
+      tlHtml += `
+        <div class="tl-item">
+          <div class="tl-time">${t}</div>
+          <div class="tl-desc">${desc}</div>
+        </div>
+      `;
+    });
+
+    mb.innerHTML = `
+      <div class="detail-row"><span class="detail-label">First Visit:</span><span class="detail-val">${firstStr}</span></div>
+      <div class="detail-row"><span class="detail-label">Last Visit:</span><span class="detail-val">${lastStr}</span></div>
+      <div class="detail-row"><span class="detail-label">Visit Count:</span><span class="detail-val">${v.visit_count} time(s)</span></div>
+      <div class="detail-row"><span class="detail-label">Traffic Source:</span><span class="detail-val">${v.source}</span></div>
+      <div class="detail-row"><span class="detail-label">Referrer:</span><span class="detail-val">${v.referrer}</span></div>
+      <div class="detail-row"><span class="detail-label">Device:</span><span class="detail-val">${v.device}</span></div>
+      <div class="detail-row"><span class="detail-label">Browser:</span><span class="detail-val">${v.browser}</span></div>
+      <div class="detail-row"><span class="detail-label">Operating System:</span><span class="detail-val">${v.os}</span></div>
+      <div class="detail-row"><span class="detail-label">Screen Resolution:</span><span class="detail-val">${v.screen_size}</span></div>
+      <div class="detail-row"><span class="detail-label">Language & Timezone:</span><span class="detail-val">${v.language} (${v.timezone})</span></div>
+      <div class="detail-row"><span class="detail-label">Approximate Location:</span><span class="detail-val">${v.location}</span></div>
+
+      <div class="timeline">
+        <div style="font-size: 13px; font-weight:700; color:#ff85a1; margin-bottom: 12px;">Activity Timeline:</div>
+        ${tlHtml || '<div style="color:#c9899f; font-size:12px;">No activity logged</div>'}
+      </div>
+    `;
+
+    document.getElementById('detailModal').classList.add('active');
+  }
+
+  function closeModal() {
+    document.getElementById('detailModal').classList.remove('active');
+  }
+
+  // CSV Export
+  function exportCSV() {
+    window.location.href = `/api/admin/export-csv?auth=${authToken}`;
+  }
+</script>
+</body>
+</html>

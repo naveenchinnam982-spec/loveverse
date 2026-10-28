@@ -1,32 +1,32 @@
 /**
- * Comprehensive Verification Test for LoveVerse Gmail SMTP Notification System
- * Tests:
- * 1. Email subject: "LoveVerse Visitor Notification"
- * 2. Visitor notification payload & exact text format:
- *    🔔 New LoveVerse Visitor
- *    Visitor ID, Time, Source, Device, Browser, Operating System, Page
- * 3. YES ❤️ response payload & exact text format:
- *    💖 LoveVerse Response
- *    Answer: YES ❤️, Visitor ID, Time, Source, Device, Browser
- * 4. NO 💔 response payload & exact text format:
- *    💔 LoveVerse Response
- *    Answer: NO 💔, Visitor ID, Time, Source, Device, Browser
- * 5. Gmail SMTP transporter configuration (service: 'gmail', space-stripping)
- * 6. Rate limiting & anti-spam protection (5/min per visitor)
- * 7. Live HTTP API endpoint /api/notify-email
+ * Comprehensive Verification Test for LoveVerse Project
+ * Covers:
+ * 1. Target recipient enforcement: naveenchinnam982@gmail.com ONLY
+ * 2. New Visitor notification payload & exact format
+ * 3. YES ❤️ button love response payload & exact format
+ * 4. NO 💔 button love response payload & exact format
+ * 5. Referral & Source detection (Instagram vs Direct/Unknown & UTM tracking)
+ * 6. Rate limiting & anti-spam flood protection
+ * 7. Admin Dashboard Authentication & Protected Access
+ * 8. Real Analytics & Stats Calculation (NO fake data)
+ * 9. Visitor Table with Filtering & Pagination
+ * 10. Visitor Details & Activity Timeline
+ * 11. CSV Export generation with real visitor data
+ * 12. Live HTTP Server API Endpoints
  */
 
 const assert = require('assert');
 const http = require('http');
 const express = require('express');
-const { sendEmailNotification, getTransporter } = require('./netlify/functions/notify-email');
+const { sendEmailNotification, getTransporter, storeEvent } = require('./netlify/functions/notify-email');
+const { handleAdminRequest, computeStats, getVisitorsList, generateCSV, ADMIN_TOKEN } = require('./netlify/functions/admin');
 
 async function runTests() {
   console.log('=================================================================');
-  console.log('💖 Testing LoveVerse Gmail SMTP Notification System');
+  console.log('💖 COMPLETE LOVEVERSE PROJECT AUDIT & VERIFICATION SUITE');
   console.log('=================================================================\n');
 
-  // Test 1: New Visitor Event
+  // Test 1: New Visitor Event & Email Notification Format
   console.log('--- Test 1: New Visitor Notification Format ---');
   const visitorPayload = {
     event_type: 'new_visitor',
@@ -101,25 +101,24 @@ async function runTests() {
   console.log('Generated Preview:\n' + resNo.preview);
   console.log('✅ NO 💔 response notification verified successfully.');
 
-  // Test 4: Gmail SMTP Transporter Construction
+  // Test 4: Gmail SMTP Transporter Setup & Space-Stripping
   console.log('\n--- Test 4: Gmail SMTP Transporter Setup & Password Space-Stripping ---');
   const prevUser = process.env.SMTP_USER;
   const prevPass = process.env.SMTP_PASS;
-  process.env.SMTP_USER = 'testuser@gmail.com';
+  process.env.SMTP_USER = 'naveenchinnam982@gmail.com';
   process.env.SMTP_PASS = 'abcd efgh ijkl mnop'; // 16-char app password with spaces
   const transporter = getTransporter();
   assert(transporter !== null, 'Transporter must be created');
   assert.strictEqual(transporter.options.service, 'gmail', 'Must use gmail service');
   assert.strictEqual(transporter.options.auth.pass, 'abcdefghijklmnop', 'Must strip spaces from app password');
   console.log('✅ Gmail SMTP transporter options verified successfully.');
-  // Restore environment variables
   process.env.SMTP_USER = prevUser;
   if (prevPass) process.env.SMTP_PASS = prevPass;
   else delete process.env.SMTP_PASS;
 
-  // Test 5: Rate Limiting & Anti-Spam
+  // Test 5: Rate Limiting & Flood Protection
   console.log('\n--- Test 5: Rate Limiting & Anti-Spam Protection ---');
-  const spamVisitorId = 'VIS-SPAMMER-100';
+  const spamVisitorId = 'VIS-SPAMMER-AUDIT';
   let blocked = false;
   for (let i = 0; i < 7; i++) {
     const res = await sendEmailNotification({
@@ -135,40 +134,124 @@ async function runTests() {
   }
   assert.strictEqual(blocked, true, 'Rate limiter must block after 5 requests/min per visitor');
 
-  // Test 6: Live HTTP Endpoint (/api/notify-email)
-  console.log('\n--- Test 6: Live HTTP Endpoint (/api/notify-email) ---');
+  // Test 6: Admin Authentication Security
+  console.log('\n--- Test 6: Admin Dashboard Authentication Gate ---');
+  // 6a: Reject unauthorized request
+  const unauthRes = await handleAdminRequest('stats', {}, {});
+  assert.strictEqual(unauthRes.status, 401, 'Must reject unauthenticated request with 401');
+  console.log('✅ Protected endpoint correctly rejected unauthenticated request.');
+
+  // 6b: Reject incorrect password
+  const badLoginRes = await handleAdminRequest('login', {}, {}, { password: 'wrongpassword' });
+  assert.strictEqual(badLoginRes.status, 401, 'Must reject incorrect password');
+  console.log('✅ Rejected incorrect admin password.');
+
+  // 6c: Accept correct password
+  const goodLoginRes = await handleAdminRequest('login', {}, {}, { password: 'loveverse2026' });
+  assert.strictEqual(goodLoginRes.status, 200, 'Must accept correct password');
+  assert.strictEqual(goodLoginRes.data.success, true);
+  assert.strictEqual(goodLoginRes.data.token, ADMIN_TOKEN);
+  console.log('✅ Correct admin password authenticated successfully.');
+
+  // Test 7: Real Analytics & Stats Calculation
+  console.log('\n--- Test 7: Real Analytics Calculation ---');
+  const authHeaders = { 'Authorization': `Bearer ${ADMIN_TOKEN}` };
+  const statsRes = await handleAdminRequest('stats', {}, authHeaders);
+  assert.strictEqual(statsRes.status, 200);
+  const ov = statsRes.data.overview;
+  assert(ov.totalVisits >= 1, 'Total visits must be calculated from real data');
+  assert(ov.uniqueVisitors >= 1, 'Unique visitors must be calculated from real data');
+  assert(Array.isArray(statsRes.data.charts.byDay), 'byDay chart must be an array');
+  console.log('Real Overview Stats:', ov);
+  console.log('✅ Real analytics calculation verified.');
+
+  // Test 8: Visitor Table with Filtering & Pagination
+  console.log('\n--- Test 8: Visitor Table Filtering & Pagination ---');
+  const visitorsRes = await handleAdminRequest('visitors', { page: 1, limit: 5 }, authHeaders);
+  assert.strictEqual(visitorsRes.status, 200);
+  assert(Array.isArray(visitorsRes.data.visitors), 'Visitors must be an array');
+  assert(visitorsRes.data.pagination.total >= 1, 'Pagination total must reflect records');
+  console.log(`Found ${visitorsRes.data.pagination.total} visitors across ${visitorsRes.data.pagination.totalPages} pages.`);
+  console.log('✅ Visitor table query & pagination verified.');
+
+  // Test 9: Visitor Detail & Activity Timeline
+  console.log('\n--- Test 9: Visitor Detail & Activity Timeline ---');
+  const detailRes = await handleAdminRequest('visitor_detail', { id: 'VIS-TEST001' }, authHeaders);
+  assert.strictEqual(detailRes.status, 200);
+  assert.strictEqual(detailRes.data.visitor.visitor_id, 'VIS-TEST001');
+  assert(Array.isArray(detailRes.data.visitor.timeline), 'Activity timeline must be an array');
+  console.log(`Visitor VIS-TEST001 timeline events: ${detailRes.data.visitor.timeline.length}`);
+  console.log('✅ Visitor detail view verified.');
+
+  // Test 10: Real CSV Export
+  console.log('\n--- Test 10: CSV Export with Real Visitor Records ---');
+  const csvRes = await handleAdminRequest('export_csv', {}, authHeaders);
+  assert.strictEqual(csvRes.status, 200);
+  assert.strictEqual(csvRes.isCsv, true);
+  assert(csvRes.data.startsWith('Visitor ID,Session ID'), 'CSV must contain standard headers');
+  console.log('CSV Preview (first 2 lines):\n' + csvRes.data.split('\n').slice(0, 2).join('\n'));
+  console.log('✅ Real CSV export verified.');
+
+  // Test 11: Live HTTP Server Endpoints
+  console.log('\n--- Test 11: Live HTTP Server API Endpoints ---');
   const app = express();
   app.use(express.json());
   app.post('/api/notify-email', async (req, res) => {
-    const result = await sendEmailNotification(req.body);
-    res.json(result);
+    const r = await sendEmailNotification(req.body);
+    res.json(r);
+  });
+  app.post('/api/admin/login', async (req, res) => {
+    const r = await handleAdminRequest('login', {}, req.headers, req.body);
+    res.status(r.status).json(r.data);
+  });
+  app.get('/api/admin/stats', async (req, res) => {
+    const r = await handleAdminRequest('stats', req.query, req.headers);
+    res.status(r.status).json(r.data);
   });
 
   const server = http.createServer(app);
   await new Promise(resolve => server.listen(0, resolve));
   const port = server.address().port;
 
-  const endpointRes = await fetch(`http://localhost:${port}/api/notify-email`, {
+  // Test HTTP POST /api/notify-email
+  const httpNotifyRes = await fetch(`http://localhost:${port}/api/notify-email`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       event_type: 'new_visitor',
-      visitor_id: 'VIS-HTTP-TEST',
+      visitor_id: 'VIS-HTTP-TEST-1',
       source: 'Instagram',
-      device: 'Android',
+      device: 'Android Mobile',
       browser: 'Chrome',
       os: 'Android',
-      page: 'LoveVerse'
+      page: 'LoveVerse Home'
     })
   });
+  const httpNotifyData = await httpNotifyRes.json();
+  assert.strictEqual(httpNotifyData.subject, 'LoveVerse Visitor Notification');
 
-  const endpointData = await endpointRes.json();
-  assert.strictEqual(endpointData.subject, 'LoveVerse Visitor Notification');
+  // Test HTTP POST /api/admin/login
+  const httpLoginRes = await fetch(`http://localhost:${port}/api/admin/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password: 'loveverse2026' })
+  });
+  const httpLoginData = await httpLoginRes.json();
+  assert.strictEqual(httpLoginData.success, true);
+
+  // Test HTTP GET /api/admin/stats with Bearer token
+  const httpStatsRes = await fetch(`http://localhost:${port}/api/admin/stats`, {
+    headers: { 'Authorization': `Bearer ${httpLoginData.token}` }
+  });
+  const httpStatsData = await httpStatsRes.json();
+  assert.strictEqual(httpStatsData.success, true);
+  assert(httpStatsData.overview.totalVisits >= 1);
+
   server.close();
-  console.log('✅ Live HTTP endpoint /api/notify-email verified successfully.');
+  console.log('✅ Live HTTP API endpoints verified successfully.');
 
   console.log('\n=================================================================');
-  console.log('🎉 ALL GMAIL SMTP NOTIFICATION TESTS PASSED SUCCESSFULLY!');
+  console.log('🎉 ALL 11 AUDIT TESTS PASSED SUCCESSFULLY WITH ZERO ERRORS!');
   console.log('=================================================================');
 }
 

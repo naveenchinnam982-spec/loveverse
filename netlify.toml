@@ -8,6 +8,16 @@
   to = "/.netlify/functions/notify-email"
   status = 200
 
+[[redirects]]
+  from = "/api/admin/:action"
+  to = "/.netlify/functions/admin?action=:action"
+  status = 200
+
+[[redirects]]
+  from = "/admin"
+  to = "/admin.html"
+  status = 200
+
 [[headers]]
   for = "/*"
   [headers.values]

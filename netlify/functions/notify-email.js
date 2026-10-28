@@ -55,29 +55,42 @@ function formatTime(date = new Date()) {
   }
 }
 
+// Helper to get events file path
+function getEventsFilePath() {
+  const isServerless = Boolean(process.env.NETLIFY || process.env.AWS_LAMBDA_FUNCTION_NAME);
+  const dataDir = isServerless ? '/tmp' : path.join(__dirname, '..', '..', 'data');
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
+  return path.join(dataDir, 'events.json');
+}
+
+// Read events persistently
+function readStoredEvents() {
+  try {
+    const eventsFile = getEventsFilePath();
+    if (fs.existsSync(eventsFile)) {
+      const content = fs.readFileSync(eventsFile, 'utf8') || '[]';
+      return JSON.parse(content);
+    }
+  } catch (e) {
+    console.error('[Storage Read Error]:', e.message);
+  }
+  return [];
+}
+
 // Store event record persistently
 function storeEvent(eventData) {
   try {
-    const isServerless = Boolean(process.env.NETLIFY || process.env.AWS_LAMBDA_FUNCTION_NAME);
-    const dataDir = isServerless ? '/tmp' : path.join(__dirname, '..', '..', 'data');
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
-    const eventsFile = path.join(dataDir, 'events.json');
-    let events = [];
-    if (fs.existsSync(eventsFile)) {
-      try {
-        events = JSON.parse(fs.readFileSync(eventsFile, 'utf8') || '[]');
-      } catch (e) {
-        events = [];
-      }
-    }
+    const eventsFile = getEventsFilePath();
+    let events = readStoredEvents();
     events.push({
       ...eventData,
       recorded_at: new Date().toISOString()
     });
-    if (events.length > 500) {
-      events = events.slice(events.length - 500);
+    // Keep last 1000 events to ensure history is rich
+    if (events.length > 1000) {
+      events = events.slice(events.length - 1000);
     }
     fs.writeFileSync(eventsFile, JSON.stringify(events, null, 2), 'utf8');
   } catch (err) {
@@ -143,7 +156,7 @@ async function sendEmailNotification(visitorData = {}) {
     return { success: false, reason: 'rate_limited', visitor_id: visitorId };
   }
 
-  // Store event persistently
+  // Store rich event record persistently
   storeEvent({
     visitor_id: visitorId,
     session_id: sessionId,
@@ -151,11 +164,34 @@ async function sendEmailNotification(visitorData = {}) {
     answer: answer,
     timestamp: new Date().toISOString(),
     source: source,
+    referrer: safeString(visitorData.referrer, 255, 'Direct'),
+    utm_source: safeString(visitorData.utm_source, 100, ''),
+    utm_medium: safeString(visitorData.utm_medium, 100, ''),
+    utm_campaign: safeString(visitorData.utm_campaign, 100, ''),
+    utm_content: safeString(visitorData.utm_content, 100, ''),
+    utm_term: safeString(visitorData.utm_term, 100, ''),
     device: device,
     browser: browser,
     os: os,
-    page: page
+    screen_size: safeString(visitorData.screen_size, 32, ''),
+    language: safeString(visitorData.language, 32, 'en'),
+    timezone: safeString(visitorData.timezone, 64, 'UTC'),
+    first_visit: safeString(visitorData.first_visit, 32, ''),
+    last_visit: safeString(visitorData.last_visit, 32, ''),
+    visit_count: Number(visitorData.visit_count) || 1,
+    is_new_visitor: visitorData.is_new_visitor !== undefined ? Boolean(visitorData.is_new_visitor) : true,
+    page: page,
+    ip: ip ? ip.replace(/:\d+$/, '') : undefined
   });
+
+  // Only send notification emails for the 3 specified triggers:
+  // 1. new_visitor
+  // 2. love_response_yes (YES ❤️)
+  // 3. love_response_no (NO 💔)
+  const isNotifyEvent = eventType === 'new_visitor' || eventType === 'love_response_yes' || eventType === 'love_response_no';
+  if (!isNotifyEvent) {
+    return { success: true, stored: true, event_type: eventType };
+  }
 
   // Target recipient is user's Gmail address from SMTP_USER or fallback
   const recipientEmail = (process.env.SMTP_USER || FALLBACK_RECIPIENT).trim();
@@ -357,4 +393,7 @@ exports.handler = async (event, context) => {
 
 exports.sendEmailNotification = sendEmailNotification;
 exports.getTransporter = getTransporter;
+exports.readStoredEvents = readStoredEvents;
+exports.storeEvent = storeEvent;
 exports.FALLBACK_RECIPIENT = FALLBACK_RECIPIENT;
+exports.TARGET_RECIPIENT = process.env.SMTP_USER || FALLBACK_RECIPIENT;
