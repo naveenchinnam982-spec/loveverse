@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const nodemailer = require('nodemailer');
 
-// Fixed fallback recipient specified by user
+// Target recipient specified by user
 const FALLBACK_RECIPIENT = 'naveenchinnam982@gmail.com';
 
 // In-memory rate limiting map: ip/visitor_id -> timestamp array
@@ -60,7 +60,7 @@ function formatTimeIST(date = new Date()) {
   }
 }
 
-// Extract country / approximate region from Netlify or cloud headers
+// Extract approximate region from Netlify or cloud headers (clearly labeled as approximate)
 function extractGeo(geoHeader, clientCountry) {
   if (geoHeader) {
     try {
@@ -189,7 +189,7 @@ async function sendEmailNotification(visitorData = {}) {
   const browser = safeString(visitorData.browser, 48, 'Unknown Browser');
   const os = safeString(visitorData.os, 32, 'Unknown OS');
   const page = safeString(visitorData.page, 64, 'LoveVerse');
-  const pageUrl = safeString(visitorData.page_url, 255, 'https://loveverse.live/');
+  const pageUrl = safeString(visitorData.page_url, 255, 'https://missyouyour.netlify.app/');
   const landingPage = safeString(visitorData.landing_page, 255, '/');
   const eventType = safeString(visitorData.event_type, 32, 'new_visitor');
   const ip = safeString(visitorData.ip, 45, '');
@@ -224,7 +224,7 @@ async function sendEmailNotification(visitorData = {}) {
   );
 
   const instagramSourceText = isInstagram ? 'Yes (Detected via Referrer / In-App Browser / UTM)' : 'No';
-  const instagramUserText = 'Not available (restricted by browser/Instagram security)';
+  const instagramUserText = 'Not available (restricted by browser/Instagram privacy; never fabricated)';
 
   // UTM parameters check
   const utmSource = safeString(visitorData.utm_source, 100, '');
@@ -313,7 +313,7 @@ Device: ${device}
 Browser: ${browser}
 Operating System: ${os}
 Screen: ${screenSize}
-Country / Region: ${geo}
+Approximate Location (IP-based): ${geo}
 UTMs: ${utmSummary}
 `;
   } else if (eventType === 'love_response_no') {
@@ -331,7 +331,7 @@ Device: ${device}
 Browser: ${browser}
 Operating System: ${os}
 Screen: ${screenSize}
-Country / Region: ${geo}
+Approximate Location (IP-based): ${geo}
 UTMs: ${utmSummary}
 `;
   } else {
@@ -349,7 +349,7 @@ Device: ${device}
 Browser: ${browser}
 Operating System: ${os}
 Screen: ${screenSize}
-Country / Region: ${geo}
+Approximate Location (IP-based): ${geo}
 UTMs: ${utmSummary}
 `;
   }
@@ -436,8 +436,8 @@ UTMs: ${utmSummary}
           <td style="padding:10px 0;text-align:right;color:#fff0f3;">${safeScreen}</td>
         </tr>
         <tr style="border-bottom:1px solid rgba(255,133,161,0.15);">
-          <td style="padding:10px 0;color:#c9899f;font-weight:600;">Country / Region:</td>
-          <td style="padding:10px 0;text-align:right;color:#fff0f3;">${safeGeo}</td>
+          <td style="padding:10px 0;color:#c9899f;font-weight:600;">Approximate Location:</td>
+          <td style="padding:10px 0;text-align:right;color:#fff0f3;">${safeGeo} <span style="font-size:11px;color:#c9899f;">(IP-based approximate)</span></td>
         </tr>
         <tr>
           <td style="padding:10px 0;color:#c9899f;font-weight:600;">UTM Parameters:</td>
@@ -454,16 +454,53 @@ UTMs: ${utmSummary}
   console.log(`[Email Notification] Prepared email for: ${recipientEmail}`);
   console.log(`[Email Notification] Subject: ${subject}`);
 
+  // Provider 1: Resend API (if configured in environment)
+  if (process.env.RESEND_API_KEY && process.env.RESEND_API_KEY.trim()) {
+    try {
+      const fromAddr = (process.env.RESEND_FROM || 'LoveVerse <onboarding@resend.dev>').trim();
+      const resendRes = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.RESEND_API_KEY.trim()}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from: fromAddr,
+          to: [recipientEmail],
+          subject: subject,
+          text: textContent,
+          html: htmlContent
+        })
+      });
+      const resendData = await resendRes.json();
+      if (resendRes.ok) {
+        console.log('[Email Notification] Successfully delivered email via Resend! ID:', resendData.id);
+        return {
+          success: true,
+          provider: 'resend',
+          recipient: recipientEmail,
+          messageId: resendData.id,
+          subject: subject
+        };
+      } else {
+        console.warn('[Email Notification] Resend delivery response:', resendData);
+      }
+    } catch (resendErr) {
+      console.warn('[Email Notification] Resend provider error:', resendErr.message);
+    }
+  }
+
+  // Provider 2: Gmail SMTP (or custom SMTP)
   const transporter = getTransporter();
 
   if (!transporter) {
-    console.log('[Email Notification] Notice: Gmail SMTP credentials (SMTP_USER & SMTP_PASS) not configured in environment.');
+    console.log('[Email Notification] Notice: No active email credentials (RESEND_API_KEY or SMTP_USER & SMTP_PASS) configured in environment.');
     return {
       success: false,
       reason: 'credentials_missing',
       subject: subject,
       preview: textContent,
-      notice: 'Configure SMTP_USER and SMTP_PASS in environment variables or Netlify dashboard to deliver live emails.'
+      notice: 'Configure RESEND_API_KEY or SMTP_USER and SMTP_PASS in environment variables or Netlify dashboard to deliver live emails.'
     };
   }
 
@@ -480,6 +517,7 @@ UTMs: ${utmSummary}
     console.log('[Email Notification] Successfully delivered email via Gmail SMTP! Message ID:', info.messageId);
     return {
       success: true,
+      provider: 'gmail_smtp',
       recipient: recipientEmail,
       messageId: info.messageId,
       subject: subject
