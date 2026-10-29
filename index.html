@@ -67,7 +67,10 @@ input,textarea,button,select{font-family:inherit}
 .btn-love.gold{background:linear-gradient(135deg,#c9184a,#f8c630);box-shadow:0 4px 18px rgba(248,198,48,.3)}
 .btn-outline{background:none;border:1px solid rgba(255,133,161,.35);border-radius:50px;padding:8px 20px;color:#ffb3c1;cursor:pointer;font-size:13px;transition:all .2s}
 .btn-outline:hover{background:rgba(255,77,109,.15);border-color:#ff4d6d;color:#fff}
-.btn-no{background:#1a0a12;border:1px solid rgba(255,133,161,.2);border-radius:50px;padding:13px 34px;color:#a06070;cursor:pointer;font-size:16px;font-weight:700;transition:transform .15s ease}
+/* ===== BUTTONS ===== */
+.btn-no{background:#1a0a12;border:1.5px solid rgba(255,133,161,.28);border-radius:50px;padding:13px 36px;color:#ff85a1;cursor:pointer;font-size:16px;font-weight:700;transition:background .2s,box-shadow .2s,border-color .2s;box-shadow:0 4px 16px rgba(0,0,0,.35);user-select:none;-webkit-tap-highlight-color:transparent}
+.btn-no:hover{background:rgba(201,24,74,.25);border-color:#ff4d6d;color:#fff;box-shadow:0 6px 22px rgba(201,24,74,.4)}
+.btn-no:active{transform:scale(.97)}
 .btn-yes{background:linear-gradient(135deg,#c9184a,#e63950);color:#fff;border:none;border-radius:50px;padding:13px 44px;font-size:18px;font-weight:900;cursor:pointer;box-shadow:0 6px 24px rgba(201,24,74,.5);transition:transform .2s,box-shadow .2s}
 .btn-yes:hover{transform:scale(1.1);box-shadow:0 10px 32px rgba(201,24,74,.7)}
 
@@ -209,6 +212,65 @@ textarea.inp{resize:none}
   .games-grid{grid-template-columns:1fr}
   .feat-grid{grid-template-columns:repeat(3,1fr)}
 }
+
+/* ===== MUSIC WIDGET ===== */
+.music-btn{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700}
+.music-btn.playing{background:rgba(255,77,109,.35);border-color:#ff4d6d;color:#fff;box-shadow:0 0 14px rgba(255,77,109,.5)}
+.music-bars{display:inline-flex;align-items:flex-end;gap:2px;height:12px}
+.music-bar{width:2px;background:#f8c630;border-radius:1px;animation:musicWave .8s ease infinite alternate}
+.music-bar:nth-child(2){animation-delay:.2s;height:60%}
+.music-bar:nth-child(3){animation-delay:.4s;height:100%}
+@keyframes musicWave{0%{height:20%}100%{height:100%}}
+
+/* ===== INTERACTIVE ENVELOPE ===== */
+.env-container{position:relative;width:290px;height:190px;margin:24px auto;perspective:800px;cursor:pointer}
+.env-back{position:absolute;inset:0;background:linear-gradient(135deg,#c9184a,#7b2d8b);border-radius:14px;box-shadow:0 12px 30px rgba(0,0,0,.5)}
+.env-flap{position:absolute;top:0;left:0;right:0;height:95px;background:linear-gradient(135deg,#e63950,#a32060);clip-path:polygon(0 0, 100% 0, 50% 100%);transform-origin:top;transition:transform .6s ease;z-index:3}
+.env-container.open .env-flap{transform:rotateX(180deg);z-index:1}
+.env-pocket{position:absolute;bottom:0;left:0;right:0;height:105px;background:linear-gradient(135deg,#c9184a,#5e0d3e);clip-path:polygon(0 100%, 100% 100%, 100% 0, 50% 60%, 0 0);z-index:3;border-radius:0 0 14px 14px}
+.env-paper{position:absolute;left:14px;right:14px;bottom:12px;height:160px;background:#fff8fa;border-radius:8px;padding:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);transition:transform .6s ease;z-index:2;overflow:hidden;color:#2c0c1e;font-family:Georgia,serif;font-size:11.5px;line-height:1.45}
+.env-container.open .env-paper{transform:translateY(-80px);box-shadow:0 12px 28px rgba(201,24,74,.4);z-index:4}
+.env-seal{position:absolute;top:76px;left:50%;transform:translateX(-50%);width:36px;height:36px;background:#f8c630;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 3px 10px rgba(0,0,0,.4);z-index:4;transition:opacity .3s}
+.env-container.open .env-seal{opacity:0;pointer-events:none}
+
+/* ===== GALLERY & LIGHTBOX ===== */
+.gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px;max-width:960px;margin:20px auto}
+.gallery-item{background:rgba(255,255,255,.05);border:1.5px solid rgba(255,133,161,.2);border-radius:20px;overflow:hidden;cursor:pointer;transition:all .3s ease;position:relative}
+.gallery-item:hover{transform:translateY(-8px);border-color:#ff4d6d;box-shadow:0 14px 30px rgba(201,24,74,.4)}
+.gallery-thumb{width:100%;height:210px;object-fit:cover;display:block;transition:transform .4s}
+.gallery-item:hover .gallery-thumb{transform:scale(1.05)}
+.gallery-info{padding:14px 16px;background:rgba(26,0,53,.85)}
+.gallery-title{font-weight:800;color:#ffe0e8;font-size:15px;margin-bottom:4px}
+.gallery-caption{font-size:12px;color:#c9899f}
+.lightbox-modal{position:fixed;inset:0;background:rgba(10,0,22,.94);backdrop-filter:blur(15px);z-index:9999;display:none;align-items:center;justify-content:center;padding:20px;flex-direction:column}
+.lightbox-modal.active{display:flex;animation:fadeIn .3s ease}
+.lightbox-content{max-width:90vw;max-height:75vh;border-radius:18px;box-shadow:0 10px 40px rgba(0,0,0,.85);object-fit:contain}
+.lightbox-nav{display:flex;align-items:center;gap:20px;margin-top:16px}
+.lb-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,133,161,.3);color:#fff;border-radius:50%;width:44px;height:44px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:20px;transition:all .2s}
+.lb-btn:hover{background:#ff4d6d;border-color:#ff4d6d;transform:scale(1.08)}
+.lb-close{position:absolute;top:20px;right:24px;background:none;border:none;color:#ff85a1;font-size:32px;cursor:pointer;line-height:1}
+
+/* ===== FEATURED COUNTDOWN ===== */
+.feat-cd-box{background:linear-gradient(135deg,rgba(201,24,74,.15),rgba(123,45,139,.18));border:1.5px solid rgba(255,77,109,.35);border-radius:22px;padding:22px;max-width:620px;margin:20px auto 28px;text-align:center}
+.cd-grid-live{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
+.cd-cell{background:rgba(255,255,255,.07);border-radius:14px;padding:12px 6px;border:1px solid rgba(255,133,161,.2);box-shadow:inset 0 0 14px rgba(255,77,109,.15)}
+.cd-val{font-size:clamp(24px,5vw,34px);font-weight:900;background:linear-gradient(135deg,#ff4d6d,#f8c630);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-family:Georgia,serif}
+.cd-tag{font-size:11px;color:#c9899f;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-top:4px}
+
+/* ===== ROMANTIC SURPRISE MODAL ===== */
+.surprise-modal{position:fixed;inset:0;background:rgba(15,0,30,.88);backdrop-filter:blur(10px);z-index:9998;display:none;align-items:center;justify-content:center;padding:16px}
+.surprise-modal.active{display:flex;animation:popUp .35s ease}
+.surprise-card{background:linear-gradient(135deg,#2e0523,#4d0838);border:2px solid #ff4d6d;border-radius:24px;padding:32px 24px;max-width:480px;width:100%;text-align:center;position:relative;box-shadow:0 14px 45px rgba(201,24,74,.5)}
+
+/* ===== ACCESSIBILITY PREFERS-REDUCED-MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
 </style>
 </head>
 <body>
@@ -227,12 +289,19 @@ textarea.inp{resize:none}
   <div class="nav-inner">
     <div class="nav-logo" onclick="goPage('home')">💖 LoveVerse</div>
     <div class="nav-right">
+      <button class="nav-icon-btn music-btn" id="musicToggleBtn" onclick="toggleRomanticMusic()" title="Play Romantic Melody">
+        <span id="musicIcon">🎵</span> <span id="musicText">Music</span>
+        <span class="music-bars" id="musicBars" style="display:none;">
+          <span class="music-bar"></span><span class="music-bar"></span><span class="music-bar"></span>
+        </span>
+      </button>
       <button class="nav-icon-btn" onclick="toggleTheme()" id="theme-btn">☀️</button>
       <button class="nav-icon-btn" onclick="toggleDrawer()">☰ Menu</button>
     </div>
   </div>
   <div id="drawer">
-    <button class="d-btn" data-page="home"    onclick="goPage('home')">🏠 Home</button>
+    <button class="d-btn" data-page="home" onclick="goPage('home')">🏠 Home</button>
+    <button class="d-btn" data-page="gallery" onclick="goPage('gallery')">📸 Photo Gallery</button>
     <button class="d-btn" data-page="calc"    onclick="goPage('calc')">💕 Calculator</button>
     <button class="d-btn" data-page="quiz"    onclick="goPage('quiz')">💝 Crush Quiz</button>
     <button class="d-btn" data-page="memory"  onclick="goPage('memory')">📸 Memories</button>
@@ -342,12 +411,20 @@ const WHEEL_COLS=["#c9184a","#7b2d8b","#ff4d6d","#6a0636","#e63950","#9d4edd","#
 const CAT_C={Adventure:"#ff4d6d",Romance:"#c9184a",Travel:"#4895ef",Foodie:"#f8c630",Creative:"#7b2d8b",Cosy:"#ff85a1"};
 
 // ── STATE ─────────────────────────────────────────────────────────
+
+// =================================================================
+// 💖 LOVEVERSE CONFIGURATION — EDIT YOUR SPECIAL DATE & SETTINGS HERE
+// =================================================================
+// Edit this to your relationship milestone, anniversary, or special date:
+const SPECIAL_COUNTDOWN_TITLE = "Valentine's Day 2027 💖";
+const SPECIAL_COUNTDOWN_DATE = "2027-02-14T00:00:00"; // Format: YYYY-MM-DDTHH:MM:SS
+
 let currentPage="home";
 let lightMode=false;
 let drawerOpen=false;
 let quoteIdx=0;
 // Banner
-let loveAnswer=null,noMoves=0,noX=0,noY=0;
+let loveAnswer=null;
 // Calc
 let calcPct=null;
 // Crush quiz
@@ -467,7 +544,7 @@ function renderPage(){
   void r.offsetWidth; // force reflow for animation restart
   const map={
     home:renderHome,calc:renderCalc,quiz:renderQuiz,
-    memory:renderMemory,letter:renderLetter,countdown:renderCountdown,
+    memory:renderMemory,gallery:renderGallery,letter:renderLetter,countdown:renderCountdown,
     bucket:renderBucket,wheel:renderWheel,secret:renderSecret,
     games:renderGames,
     hcGame:renderHCGame,mmGame:renderMMGame,lqGame:renderLQGame,
@@ -487,6 +564,63 @@ function renderHome(){
   $("root").innerHTML=`
   ${profileHTML()}
   ${bannerHTML()}
+
+  <!-- Romantic Surprise Button -->
+  <div style="text-align:center;margin:10px 0 24px">
+    <button class="btn-love gold" onclick="showRomanticSurprise()" style="font-size:16px;padding:14px 34px">
+      🎁 Tap for a Romantic Surprise ✨
+    </button>
+  </div>
+
+  <!-- Featured Special Day Countdown -->
+  <div class="feat-cd-box">
+    <div style="font-size:12px;color:#f8c630;letter-spacing:2px;text-transform:uppercase;font-weight:700">⏳ Relationship Milestone Countdown</div>
+    <div style="font-size:18px;font-weight:800;color:#ffe0e8;margin-top:6px;font-family:Georgia,serif">${SPECIAL_COUNTDOWN_TITLE}</div>
+    <div class="cd-grid-live">
+      <div class="cd-cell"><div class="cd-val" id="scd-days">0</div><div class="cd-tag">Days</div></div>
+      <div class="cd-cell"><div class="cd-val" id="scd-hours">00</div><div class="cd-tag">Hours</div></div>
+      <div class="cd-cell"><div class="cd-val" id="scd-mins">00</div><div class="cd-tag">Minutes</div></div>
+      <div class="cd-cell"><div class="cd-val" id="scd-secs">00</div><div class="cd-tag">Seconds</div></div>
+    </div>
+    <div id="scd-status" style="margin-top:10px;font-size:12px;color:#ff85a1;font-weight:600">Counting down every second with love 💖</div>
+  </div>
+
+  <!-- Interactive Romantic Love Letter Component -->
+  <div class="card" style="max-width:620px;margin:0 auto 28px;text-align:center">
+    <div style="font-size:12px;color:#ff85a1;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-bottom:8px">✉️ Interactive Love Letter</div>
+    <p class="muted" style="font-size:13px;margin-bottom:14px">A special message sealed with love just for you</p>
+    
+    <div class="env-container ${letterOpened ? 'open' : ''}" id="interactiveEnvelope" onclick="toggleInteractiveLetter()">
+      <div class="env-back"></div>
+      <div class="env-flap"></div>
+      <div class="env-pocket"></div>
+      <div class="env-seal">💖</div>
+      <div class="env-paper">
+        <div style="font-weight:700;color:#c9184a;margin-bottom:4px">My Dearest Love,</div>
+        <p>From the moment you entered my world, everything became warmer and brighter... Tap to read more ✨</p>
+      </div>
+    </div>
+
+    <button class="btn-love sm" id="openLetterBtn" onclick="toggleInteractiveLetter()" style="margin-top:10px">
+      ${letterOpened ? 'Fold & Close Letter ✉️' : 'Open Love Letter 💌'}
+    </button>
+
+    <div id="letterFullCard" style="display:${letterOpened ? 'block' : 'none'};margin-top:22px;padding:22px;background:rgba(255,255,255,.05);border-radius:18px;border:1.5px solid rgba(255,77,109,.35);text-align:left;animation:popUp .4s">
+      <div style="font-size:24px;margin-bottom:10px">💌</div>
+      <h3 style="font-family:Georgia,serif;color:#ff85a1;font-size:20px;margin-bottom:12px">To My Favorite Person in the World,</h3>
+      <p style="font-family:Georgia,serif;font-size:15px;line-height:1.8;color:#ffe0e8;margin-bottom:12px">
+        From the very first moment our paths crossed, you brought an impossible brightness into my life. Every smile of yours feels like a quiet blessing, and every memory with you is a treasure I hold close to my heart.
+      </p>
+      <p style="font-family:Georgia,serif;font-size:15px;line-height:1.8;color:#ffe0e8;margin-bottom:14px">
+        You are my sweetest daydream, my favorite notification, and the person who turns ordinary moments into unforgettable poetry. Thank you for being who you are.
+      </p>
+      <div style="font-family:Georgia,serif;font-style:italic;color:#f8c630;font-size:16px;text-align:right">
+        With all my heart & soul,<br>
+        <strong>Naveen 💖</strong>
+      </div>
+    </div>
+  </div>
+
   <div style="text-align:center;margin:30px 0 24px">
     <span class="hb-anim" style="font-size:74px;display:inline-block;filter:drop-shadow(0 0 20px rgba(255,77,109,.7))">💖</span>
     <div style="font-size:clamp(30px,6vw,58px);font-weight:900;font-family:Georgia,serif;background:linear-gradient(135deg,#ff4d6d,#f8c630,#ff85a1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.1;margin:12px 0">Welcome to<br>LoveVerse</div>
@@ -533,7 +667,7 @@ function bannerHTML(){
       <div class="hb-anim" style="font-size:72px;display:inline-block">💖</div>
       <div style="font-size:clamp(22px,5vw,36px);font-weight:900;font-family:Georgia,serif;background:linear-gradient(135deg,#ff4d6d,#f8c630);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:10px 0">I Love You Too! 💖</div>
       <p class="muted" style="font-size:15px;margin-bottom:18px">You just made my heart skip a beat! 🥺✨</p>
-      <button class="btn-outline" onclick="loveAnswer=null;noMoves=0;noX=0;noY=0;renderPage()">Ask again 🔄</button>
+      <button class="btn-outline" onclick="loveAnswer=null;renderPage()">Ask again 🔄</button>
     </div>
   </div>`;
   if(loveAnswer==="no") return `
@@ -542,7 +676,7 @@ function bannerHTML(){
     <div style="font-size:clamp(20px,4vw,30px);color:#ff4d6d;font-weight:900;margin:10px 0">Denied!! 💔</div>
     <p class="muted" style="margin-bottom:6px">You really clicked NO after all that? 😤</p>
     <p class="muted" style="font-size:13px;margin-bottom:18px">Fine. I didn't want your love anyway... 🙄 (I'm lying 🥺)</p>
-    <button class="btn-outline" onclick="loveAnswer=null;noMoves=0;noX=0;noY=0;renderPage()">Give me another chance 🥺</button>
+    <button class="btn-outline" onclick="loveAnswer=null;renderPage()">Give me another chance 🥺</button>
   </div>`;
   return `
   <div class="card-rose" style="text-align:center;margin-bottom:26px;position:relative;overflow:hidden">
@@ -552,30 +686,23 @@ function bannerHTML(){
       <div class="ban-q">Will you love me?</div>
       <p class="muted" style="font-size:13px;margin-bottom:22px">Think carefully… 💭</p>
       <div class="ban-btns">
-        <button class="btn-no" id="no-btn"
-          onmouseover="evadeNo(this)"
-          ontouchstart="evadeNo(this)"
-          onclick="tryNo()"
-          style="transform:translate(${noX}px,${noY}px)">NO 💔</button>
-        <button class="btn-yes" onclick="if(window.sendLoveResponse)window.sendLoveResponse('yes');loveAnswer='yes';fireConfetti();renderPage()">YES ❤️</button>
+        <button class="btn-no" id="no-btn" onclick="tryNo()">NO 💔</button>
+        <button class="btn-yes" id="yes-btn" onclick="tryYes()">YES ❤️</button>
       </div>
     </div>
   </div>`;}
 
-function evadeNo(btn){
-  noMoves++;
-  noX=(Math.random()-.5)*260;
-  noY=(Math.random()-.5)*140;
-  btn.style.transform=`translate(${noX}px,${noY}px)`;
-  if(noMoves>=5){
-    if(window.sendLoveResponse)window.sendLoveResponse('no');
-    loveAnswer="no";
-    renderPage();
-  }
-}
 function tryNo(){
-  if(window.sendLoveResponse)window.sendLoveResponse('no');
+  if(window.sendLoveResponse) window.sendLoveResponse('no');
   loveAnswer="no";
+  renderPage();
+}
+
+function tryYes(){
+  if(window.sendLoveResponse) window.sendLoveResponse('yes');
+  loveAnswer="yes";
+  fireConfetti();
+  triggerCelebrationHearts();
   renderPage();
 }
 
@@ -1184,6 +1311,311 @@ function doFortune(){
   ftPhase="gazing";ftFortune=null;renderFTGame();
   setTimeout(()=>{ftPhase="revealing";renderFTGame();},2100);
   setTimeout(()=>{ftFortune=rand(FORTUNES);ftPhase="idle";renderFTGame();},2900);
+}
+
+
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║  ADVANCED FEATURE: ROMANTIC MUSIC SYNTHESIZER (WEB AUDIO API)   ║
+// ╚══════════════════════════════════════════════════════════════════╝
+let audioCtx = null;
+let musicPlaying = false;
+let musicMuted = false;
+let musicInterval = null;
+
+function initAudio() {
+  if (!audioCtx) {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (AudioContext) audioCtx = new AudioContext();
+  }
+}
+
+// Romantic chord melody progression (soothing harp & music box frequencies)
+const ROMANTIC_MELODY = [
+  261.63, 329.63, 392.00, 493.88, 523.25, // C4, E4, G4, B4, C5
+  220.00, 261.63, 329.63, 392.00, 440.00, // A3, C4, E4, G4, A4
+  174.61, 220.00, 261.63, 329.63, 349.23, // F3, A3, C4, E4, F4
+  196.00, 246.94, 293.66, 392.00, 493.88  // G3, B3, D4, G4, B4
+];
+let melodyStep = 0;
+
+function playRomanticNote(freq, dur = 1.3) {
+  if (!audioCtx || musicMuted || !musicPlaying) return;
+  try {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.12, audioCtx.currentTime + 0.08);
+    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + dur);
+  } catch (e) {}
+}
+
+function startMelodyLoop() {
+  if (musicInterval) clearInterval(musicInterval);
+  musicInterval = setInterval(() => {
+    if (!musicPlaying) return;
+    const freq = ROMANTIC_MELODY[melodyStep % ROMANTIC_MELODY.length];
+    playRomanticNote(freq, 1.4);
+    melodyStep++;
+  }, 420);
+}
+
+function toggleRomanticMusic() {
+  initAudio();
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+  const customAudio = $("bgMusicAudio");
+  if (musicPlaying) {
+    musicPlaying = false;
+    if (musicInterval) clearInterval(musicInterval);
+    if (customAudio) customAudio.pause();
+    updateMusicUI();
+  } else {
+    musicPlaying = true;
+    if (customAudio && customAudio.src) {
+      customAudio.play().catch(() => {});
+    }
+    startMelodyLoop();
+    updateMusicUI();
+  }
+}
+
+function toggleMusicMute() {
+  musicMuted = !musicMuted;
+  const customAudio = $("bgMusicAudio");
+  if (customAudio) customAudio.muted = musicMuted;
+  updateMusicUI();
+}
+
+function updateMusicUI() {
+  const btn = $("musicToggleBtn");
+  const icon = $("musicIcon");
+  const text = $("musicText");
+  const bars = $("musicBars");
+  if (!btn) return;
+  if (musicPlaying) {
+    btn.classList.add("playing");
+    if (icon) icon.textContent = musicMuted ? "🔇" : "⏸";
+    if (text) text.textContent = musicMuted ? "Muted" : "Playing";
+    if (bars) bars.style.display = "inline-flex";
+  } else {
+    btn.classList.remove("playing");
+    if (icon) icon.textContent = "🎵";
+    if (text) text.textContent = "Music";
+    if (bars) bars.style.display = "none";
+  }
+}
+
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║  ADVANCED FEATURE: CELEBRATION HEARTS & CONFETTI                ║
+// ╚══════════════════════════════════════════════════════════════════╝
+function triggerCelebrationHearts() {
+  const container = $("hearts-layer");
+  if (!container) return;
+  const emojis = ["💖", "💝", "❤️", "🌹", "✨", "💕", "💘"];
+  for (let i = 0; i < 28; i++) {
+    const el = document.createElement("span");
+    el.className = "fheart";
+    el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    el.style.left = (Math.random() * 96) + "%";
+    el.style.fontSize = (22 + Math.random() * 26) + "px";
+    el.style.animationDuration = (3.5 + Math.random() * 3.5) + "s";
+    el.style.animationDelay = (Math.random() * 0.7) + "s";
+    container.appendChild(el);
+    setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 8000);
+  }
+}
+
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║  ADVANCED FEATURE: LIVE SPECIAL LOVE COUNTDOWN                  ║
+// ╚══════════════════════════════════════════════════════════════════╝
+function updateSpecialCountdown() {
+  const diff = new Date(SPECIAL_COUNTDOWN_DATE) - new Date();
+  const dEl = $("scd-days");
+  const hEl = $("scd-hours");
+  const mEl = $("scd-mins");
+  const sEl = $("scd-secs");
+  const statusEl = $("scd-status");
+  if (!dEl) return;
+  if (diff <= 0) {
+    if (statusEl) statusEl.innerHTML = "🎉 Our Special Day Has Arrived! 💖✨";
+    if (dEl) dEl.textContent = "0";
+    if (hEl) hEl.textContent = "00";
+    if (mEl) mEl.textContent = "00";
+    if (sEl) sEl.textContent = "00";
+    return;
+  }
+  const dv = Math.floor(diff / 86400000);
+  const hv = Math.floor((diff % 86400000) / 3600000);
+  const mv = Math.floor((diff % 3600000) / 60000);
+  const sv = Math.floor((diff % 60000) / 1000);
+  dEl.textContent = dv;
+  hEl.textContent = pad2(hv);
+  mEl.textContent = pad2(mv);
+  sEl.textContent = pad2(sv);
+}
+setInterval(updateSpecialCountdown, 1000);
+
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║  ADVANCED FEATURE: INTERACTIVE LOVE LETTER                      ║
+// ╚══════════════════════════════════════════════════════════════════╝
+let letterOpened = false;
+function toggleInteractiveLetter() {
+  letterOpened = !letterOpened;
+  const env = $("interactiveEnvelope");
+  const btn = $("openLetterBtn");
+  const textCard = $("letterFullCard");
+  if (env) {
+    if (letterOpened) {
+      env.classList.add("open");
+      if (btn) btn.innerHTML = "Fold & Close Letter ✉️";
+      if (textCard) {
+        textCard.style.display = "block";
+        textCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+      triggerCelebrationHearts();
+    } else {
+      env.classList.remove("open");
+      if (btn) btn.innerHTML = "Open Love Letter 💌";
+      if (textCard) textCard.style.display = "none";
+    }
+  }
+}
+
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║  ADVANCED FEATURE: ROMANTIC MEMORIES GALLERY & LIGHTBOX         ║
+// ╚══════════════════════════════════════════════════════════════════╝
+let currentLightboxIdx = 0;
+const GALLERY_ITEMS = [
+  {
+    title: "Naveen 💖",
+    desc: "The heartbeat and creator of LoveVerse ✨",
+    src: PHOTO
+  },
+  {
+    title: "The First Spark 💫",
+    desc: "When ordinary moments quietly turned into pure magic.",
+    src: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    title: "Golden Hour Whispers 🌅",
+    desc: "Warm sunsets, gentle breezes, and memories etched in our souls.",
+    src: "https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    title: "Endless Laughter 😂💕",
+    desc: "Every laugh shared with you is sunshine to my heart.",
+    src: "https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    title: "Two Hearts, One Song 🌹",
+    desc: "Walking together through every season of life.",
+    src: "https://images.unsplash.com/photo-1494774157365-9e04c6720e47?auto=format&fit=crop&w=800&q=80"
+  }
+];
+
+function renderGallery(){
+  $("root").innerHTML = `${backBtn("📸 Romantic Memories Gallery")}
+  <div class="card" style="max-width:980px;margin:0 auto">
+    <div style="text-align:center;margin-bottom:24px">
+      <h3 style="font-family:Georgia,serif;color:#ff85a1;font-size:24px;margin-bottom:8px">Our Cherished Moments ✨</h3>
+      <p class="muted" style="font-size:14px">Tap any photo to view full-screen with swipe navigation</p>
+    </div>
+    <div class="gallery-grid">
+      ${GALLERY_ITEMS.map((item, idx) => `
+        <div class="gallery-item" onclick="openLightbox(${idx})">
+          <img src="${item.src}" alt="${item.title}" class="gallery-thumb" loading="lazy">
+          <div class="gallery-info">
+            <div class="gallery-title">${item.title}</div>
+            <div class="gallery-caption">${item.desc}</div>
+          </div>
+        </div>
+      `).join("")}
+    </div>
+  </div>`;
+}
+
+function openLightbox(idx) {
+  currentLightboxIdx = idx;
+  const modal = $("lightboxModal");
+  const img = $("lightboxImg");
+  const title = $("lightboxTitle");
+  const desc = $("lightboxDesc");
+  if (!modal || !img) return;
+  const item = GALLERY_ITEMS[currentLightboxIdx];
+  img.src = item.src;
+  img.alt = item.title;
+  if (title) title.textContent = item.title;
+  if (desc) desc.textContent = item.desc;
+  modal.classList.add("active");
+  document.body.style.overflow = "hidden";
+}
+
+function closeLightbox() {
+  const modal = $("lightboxModal");
+  if (modal) modal.classList.remove("active");
+  document.body.style.overflow = "";
+}
+
+function nextLightbox(e) {
+  if (e) e.stopPropagation();
+  currentLightboxIdx = (currentLightboxIdx + 1) % GALLERY_ITEMS.length;
+  openLightbox(currentLightboxIdx);
+}
+
+function prevLightbox(e) {
+  if (e) e.stopPropagation();
+  currentLightboxIdx = (currentLightboxIdx - 1 + GALLERY_ITEMS.length) % GALLERY_ITEMS.length;
+  openLightbox(currentLightboxIdx);
+}
+
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║  ADVANCED FEATURE: ROMANTIC SURPRISE MODAL                      ║
+// ╚══════════════════════════════════════════════════════════════════╝
+const ROMANTIC_SURPRISES = [
+  "You are the poem my soul has always wanted to write. ✨",
+  "Every single day with you is my new favorite day. 💖",
+  "If I could give you one thing, it would be the ability to see yourself through my eyes. 🥺❤️",
+  "My favorite place in the entire world is right next to you. 🌹",
+  "You make all the little ordinary moments feel extraordinary. 💫",
+  "I loved you yesterday, I love you still, I always have, I always will. 💍",
+  "Just a reminder: You are beautiful, cherished, and deeply adored. 🌸",
+  "Meeting you was destiny, but loving you is the easiest thing I have ever done. 💕",
+  "Your smile is literally the sweetest thing in this universe. 🥺✨",
+  "My heart did a happy dance the very first day you smiled at me. 💃❤️",
+  "You are my favorite notification, every single time. 💌",
+  "No distance could ever dim the way you light up my thoughts. 🌙",
+  "You are my sunshine on rainy days and my warm tea on cold nights. ☕❤️",
+  "Whatever our souls are made of, yours and mine are the exact same. 🕊️"
+];
+let surpriseIdx = 0;
+
+function showRomanticSurprise() {
+  const modal = $("surpriseModal");
+  const text = $("surpriseText");
+  surpriseIdx = Math.floor(Math.random() * ROMANTIC_SURPRISES.length);
+  if (text) text.textContent = ROMANTIC_SURPRISES[surpriseIdx];
+  if (modal) modal.classList.add("active");
+  fireConfetti();
+  triggerCelebrationHearts();
+}
+
+function nextRomanticSurprise() {
+  surpriseIdx = (surpriseIdx + 1) % ROMANTIC_SURPRISES.length;
+  const text = $("surpriseText");
+  if (text) text.textContent = ROMANTIC_SURPRISES[surpriseIdx];
+  fireConfetti();
+}
+
+function closeRomanticSurprise() {
+  const modal = $("surpriseModal");
+  if (modal) modal.classList.remove("active");
 }
 
 // ── INIT ──────────────────────────────────────────────────────────
