@@ -109,10 +109,13 @@
       } else {
         source = utmSource;
       }
-    } else if (ref.includes('instagram.com') || ref.includes('l.instagram.com') || ref.includes('android-app://com.instagram.android')) {
+    } else if (urlParams.has('igsh') || urlParams.has('igshid')) {
+      source = 'Instagram (Bio/Story Link)';
+      isInstagramTraffic = true;
+    } else if (ref.includes('instagram.com') || ref.includes('l.instagram.com') || ref.includes('lm.instagram.com') || ref.includes('android-app://com.instagram.android')) {
       source = 'Instagram';
       isInstagramTraffic = true;
-    } else if (ua.includes('instagram')) {
+    } else if (/instagram/i.test(ua)) {
       source = 'Instagram';
       isInstagramTraffic = true;
     } else if (ref.includes('facebook.com') || ref.includes('l.facebook.com')) {

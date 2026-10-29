@@ -40,11 +40,11 @@ async function runTests() {
   };
 
   const resVisitor = await sendEmailNotification(visitorPayload);
-  assert.strictEqual(resVisitor.subject, 'LoveVerse — New Website Visitor ❤️', 'Subject must be exact');
+  assert.strictEqual(resVisitor.subject, 'LoveVerse — New Visitor ❤️', 'Subject must be exact');
   assert(resVisitor.preview.includes('🔔 New LoveVerse Visitor'), 'Must contain visitor header');
   assert(resVisitor.preview.includes('Visitor ID: VIS-TEST001'), 'Must contain Visitor ID');
   assert(resVisitor.preview.includes('Source: Instagram'), 'Must contain Source');
-  assert(resVisitor.preview.includes('Device: Mobile'), 'Must contain Device');
+  assert(resVisitor.preview.includes('Device Category: Mobile'), 'Must contain Device Category');
   assert(resVisitor.preview.includes('Browser: Instagram In-App Browser'), 'Must contain Browser');
   assert(resVisitor.preview.includes('Operating System: iOS'), 'Must contain Operating System');
   assert(resVisitor.preview.includes('Page: LoveVerse Home'), 'Must contain Page');
@@ -71,7 +71,7 @@ async function runTests() {
   assert(resYes.preview.includes('Answer: YES ❤️'), 'Must contain Answer: YES ❤️');
   assert(resYes.preview.includes('Visitor ID: VIS-TEST002'), 'Must contain Visitor ID');
   assert(resYes.preview.includes('Source: Instagram'), 'Must contain Source');
-  assert(resYes.preview.includes('Device: Android'), 'Must contain Device');
+  assert(resYes.preview.includes('Device Category: Android'), 'Must contain Device Category');
   assert(resYes.preview.includes('Browser: Chrome'), 'Must contain Browser');
   console.log('Generated Preview:\n' + resYes.preview);
   console.log('✅ YES ❤️ response notification verified successfully.');
@@ -96,7 +96,7 @@ async function runTests() {
   assert(resNo.preview.includes('Answer: NO 💔'), 'Must contain Answer: NO 💔');
   assert(resNo.preview.includes('Visitor ID: VIS-TEST003'), 'Must contain Visitor ID');
   assert(resNo.preview.includes('Source: Direct / Unknown'), 'Must contain Source');
-  assert(resNo.preview.includes('Device: Desktop'), 'Must contain Device');
+  assert(resNo.preview.includes('Device Category: Desktop'), 'Must contain Device Category');
   assert(resNo.preview.includes('Browser: Firefox'), 'Must contain Browser');
   console.log('Generated Preview:\n' + resNo.preview);
   console.log('✅ NO 💔 response notification verified successfully.');
@@ -228,7 +228,7 @@ async function runTests() {
     })
   });
   const httpNotifyData = await httpNotifyRes.json();
-  assert.strictEqual(httpNotifyData.subject, 'LoveVerse — New Website Visitor ❤️');
+  assert.strictEqual(httpNotifyData.subject, 'LoveVerse — New Visitor ❤️');
 
   // Test HTTP POST /api/admin/login
   const httpLoginRes = await fetch(`http://localhost:${port}/api/admin/login`, {

@@ -223,8 +223,18 @@ async function sendEmailNotification(visitorData = {}) {
     (visitorData.referrer && visitorData.referrer.toLowerCase().includes('instagram'))
   );
 
-  const instagramSourceText = isInstagram ? 'Yes (Detected via Referrer / In-App Browser / UTM)' : 'No';
-  const instagramUserText = 'Not available (restricted by browser/Instagram privacy; never fabricated)';
+  let instagramSourceText = 'No';
+  if (isInstagram) {
+    instagramSourceText = 'Yes (Detected via Referrer / In-App Browser / UTM)';
+  } else if (source === 'Direct / Unknown' && (!visitorData.referrer || visitorData.referrer === 'Direct / None' || visitorData.referrer === '')) {
+    instagramSourceText = 'Unknown (Direct / Privacy-Restricted)';
+  }
+
+  const instagramUserText = visitorData.instagram_username
+    ? safeString(visitorData.instagram_username, 60, 'Not available')
+    : 'Not available';
+
+  const referrerText = safeString(visitorData.referrer, 255, 'Direct / None');
 
   // UTM parameters check
   const utmSource = safeString(visitorData.utm_source, 100, '');
@@ -282,7 +292,7 @@ async function sendEmailNotification(visitorData = {}) {
   const recipientEmail = FALLBACK_RECIPIENT;
 
   // Exact Subject line matching specifications
-  let subject = 'LoveVerse — New Website Visitor ❤️';
+  let subject = 'LoveVerse — New Visitor ❤️';
   let headline = '🔔 New LoveVerse Visitor';
   let badgeColor = '#ff4d6d';
 
@@ -301,15 +311,17 @@ async function sendEmailNotification(visitorData = {}) {
   if (eventType === 'love_response_yes') {
     textContent = `💖 LoveVerse Response
 
-Answer: YES ❤️
+Event Type: Love Response (YES ❤️)
+Selected Answer: YES ❤️
 Visitor ID: ${visitorId}
 Time: ${time}
 Source: ${source}
+Referrer: ${referrerText}
 Instagram Traffic: ${instagramSourceText}
 Instagram Username: ${instagramUserText}
-Page URL: ${pageUrl}
+Landing Page URL: ${pageUrl}
 Landing Page: ${landingPage}
-Device: ${device}
+Device Category: ${device}
 Browser: ${browser}
 Operating System: ${os}
 Screen: ${screenSize}
@@ -319,15 +331,17 @@ UTMs: ${utmSummary}
   } else if (eventType === 'love_response_no') {
     textContent = `💔 LoveVerse Response
 
-Answer: NO 💔
+Event Type: Love Response (NO 💔)
+Selected Answer: NO 💔
 Visitor ID: ${visitorId}
 Time: ${time}
 Source: ${source}
+Referrer: ${referrerText}
 Instagram Traffic: ${instagramSourceText}
 Instagram Username: ${instagramUserText}
-Page URL: ${pageUrl}
+Landing Page URL: ${pageUrl}
 Landing Page: ${landingPage}
-Device: ${device}
+Device Category: ${device}
 Browser: ${browser}
 Operating System: ${os}
 Screen: ${screenSize}
@@ -337,15 +351,17 @@ UTMs: ${utmSummary}
   } else {
     textContent = `🔔 New LoveVerse Visitor
 
+Event Type: New Visitor
 Visitor ID: ${visitorId}
 Time: ${time}
 Source: ${source}
+Referrer: ${referrerText}
 Instagram Traffic: ${instagramSourceText}
 Instagram Username: ${instagramUserText}
 Page: ${page}
-Page URL: ${pageUrl}
+Landing Page URL: ${pageUrl}
 Landing Page: ${landingPage}
-Device: ${device}
+Device Category: ${device}
 Browser: ${browser}
 Operating System: ${os}
 Screen: ${screenSize}
@@ -357,6 +373,7 @@ UTMs: ${utmSummary}
   // Format Escaped HTML Template
   const safeVisitorId = escapeHtml(visitorId);
   const safeSource = escapeHtml(source);
+  const safeReferrer = escapeHtml(referrerText);
   const safeTime = escapeHtml(time);
   const safeDevice = escapeHtml(device);
   const safeBrowser = escapeHtml(browser);
@@ -404,23 +421,23 @@ UTMs: ${utmSummary}
           <td style="padding:10px 0;font-weight:700;color:#f8c630;text-align:right;">${safeSource}</td>
         </tr>
         <tr style="border-bottom:1px solid rgba(255,133,161,0.15);">
-          <td style="padding:10px 0;color:#c9899f;font-weight:600;">Instagram Traffic:</td>
-          <td style="padding:10px 0;text-align:right;color:#ff85a1;">${safeIgSource}</td>
+          <td style="padding:10px 0;color:#c9899f;font-weight:600;">Referrer URL:</td>
+          <td style="padding:10px 0;text-align:right;color:#fff0f3;word-break:break-all;font-size:13px;">${safeReferrer}</td>
+        </tr>
+        <tr style="border-bottom:1px solid rgba(255,133,161,0.15);">
+          <td style="padding:10px 0;color:#c9899f;font-weight:600;">Instagram Traffic Detected:</td>
+          <td style="padding:10px 0;text-align:right;color:#ff85a1;font-weight:700;">${safeIgSource}</td>
         </tr>
         <tr style="border-bottom:1px solid rgba(255,133,161,0.15);">
           <td style="padding:10px 0;color:#c9899f;font-weight:600;">Instagram Username:</td>
           <td style="padding:10px 0;text-align:right;color:#c9899f;font-style:italic;font-size:13px;">${safeIgUser}</td>
         </tr>
         <tr style="border-bottom:1px solid rgba(255,133,161,0.15);">
-          <td style="padding:10px 0;color:#c9899f;font-weight:600;">Page URL:</td>
+          <td style="padding:10px 0;color:#c9899f;font-weight:600;">Landing Page URL:</td>
           <td style="padding:10px 0;text-align:right;color:#fff0f3;word-break:break-all;font-size:13px;">${safePageUrl}</td>
         </tr>
         <tr style="border-bottom:1px solid rgba(255,133,161,0.15);">
-          <td style="padding:10px 0;color:#c9899f;font-weight:600;">Landing Page:</td>
-          <td style="padding:10px 0;text-align:right;color:#fff0f3;font-size:13px;">${safeLanding}</td>
-        </tr>
-        <tr style="border-bottom:1px solid rgba(255,133,161,0.15);">
-          <td style="padding:10px 0;color:#c9899f;font-weight:600;">Device:</td>
+          <td style="padding:10px 0;color:#c9899f;font-weight:600;">Device Category:</td>
           <td style="padding:10px 0;text-align:right;color:#fff0f3;">${safeDevice}</td>
         </tr>
         <tr style="border-bottom:1px solid rgba(255,133,161,0.15);">
@@ -432,7 +449,7 @@ UTMs: ${utmSummary}
           <td style="padding:10px 0;text-align:right;color:#fff0f3;">${safeOs}</td>
         </tr>
         <tr style="border-bottom:1px solid rgba(255,133,161,0.15);">
-          <td style="padding:10px 0;color:#c9899f;font-weight:600;">Screen Size:</td>
+          <td style="padding:10px 0;color:#c9899f;font-weight:600;">Screen Resolution:</td>
           <td style="padding:10px 0;text-align:right;color:#fff0f3;">${safeScreen}</td>
         </tr>
         <tr style="border-bottom:1px solid rgba(255,133,161,0.15);">
@@ -440,7 +457,7 @@ UTMs: ${utmSummary}
           <td style="padding:10px 0;text-align:right;color:#fff0f3;">${safeGeo} <span style="font-size:11px;color:#c9899f;">(IP-based approximate)</span></td>
         </tr>
         <tr>
-          <td style="padding:10px 0;color:#c9899f;font-weight:600;">UTM Parameters:</td>
+          <td style="padding:10px 0;color:#c9899f;font-weight:600;">UTM Campaign:</td>
           <td style="padding:10px 0;text-align:right;color:#f8c630;font-size:12px;">${safeUtm}</td>
         </tr>
       </table>
