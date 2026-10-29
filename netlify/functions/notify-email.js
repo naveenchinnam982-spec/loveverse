@@ -193,8 +193,9 @@ async function sendEmailNotification(visitorData = {}) {
     return { success: true, stored: true, event_type: eventType };
   }
 
-  // Target recipient is user's Gmail address from SMTP_USER or fallback
-  const recipientEmail = (process.env.SMTP_USER || FALLBACK_RECIPIENT).trim();
+  // Recipient is ALWAYS naveenchinnam982@gmail.com — the notification inbox
+  // SMTP_USER is the FROM/sender account (can differ from recipient)
+  const recipientEmail = FALLBACK_RECIPIENT;
 
   // Exact Subject line: "LoveVerse Visitor Notification"
   const subject = 'LoveVerse Visitor Notification';
@@ -372,10 +373,30 @@ exports.handler = async (event, context) => {
     };
   }
 
+  // Body size limit: reject payloads > 50KB
+  if (event.body && event.body.length > 51200) {
+    return {
+      statusCode: 413,
+      headers,
+      body: JSON.stringify({ error: 'Payload Too Large' })
+    };
+  }
+
+  // Content-type check
+  const contentType = (event.headers['content-type'] || event.headers['Content-Type'] || '').toLowerCase();
+  if (event.body && !contentType.includes('application/json')) {
+    return {
+      statusCode: 415,
+      headers,
+      body: JSON.stringify({ error: 'Unsupported Media Type: expected application/json' })
+    };
+  }
+
   try {
     const visitorData = JSON.parse(event.body || '{}');
     const result = await sendEmailNotification(visitorData);
 
+    // Always return 200 so a failed email notification doesn't break the website UI
     return {
       statusCode: 200,
       headers,
@@ -396,4 +417,6 @@ exports.getTransporter = getTransporter;
 exports.readStoredEvents = readStoredEvents;
 exports.storeEvent = storeEvent;
 exports.FALLBACK_RECIPIENT = FALLBACK_RECIPIENT;
-exports.TARGET_RECIPIENT = process.env.SMTP_USER || FALLBACK_RECIPIENT;
+exports.TARGET_RECIPIENT = FALLBACK_RECIPIENT;
+
+

@@ -3,19 +3,52 @@
   publish = "."
   functions = "netlify/functions"
 
+# Notify / tracking endpoint
 [[redirects]]
   from = "/api/notify-email"
   to = "/.netlify/functions/notify-email"
   status = 200
 
+# Admin login (POST)
 [[redirects]]
-  from = "/api/admin/:action"
-  to = "/.netlify/functions/admin?action=:action"
+  from = "/api/admin/login"
+  to = "/.netlify/functions/admin?action=login"
   status = 200
 
+# Admin stats (GET)
+[[redirects]]
+  from = "/api/admin/stats"
+  to = "/.netlify/functions/admin?action=stats"
+  status = 200
+
+# Admin visitors table (GET)
+[[redirects]]
+  from = "/api/admin/visitors"
+  to = "/.netlify/functions/admin?action=visitors"
+  status = 200
+
+# Admin visitor detail — MUST come before the generic :action route
+[[redirects]]
+  from = "/api/admin/visitor/:id"
+  to = "/.netlify/functions/admin?action=visitor_detail&id=:id"
+  status = 200
+
+# Admin CSV export
+[[redirects]]
+  from = "/api/admin/export-csv"
+  to = "/.netlify/functions/admin?action=export_csv"
+  status = 200
+
+# Admin dashboard page
 [[redirects]]
   from = "/admin"
   to = "/admin.html"
+  status = 200
+
+# Generic admin action fallback
+[[redirects]]
+  from = "/api/admin/:action"
+  to = "/.netlify/functions/admin?action=:action"
   status = 200
 
 [[headers]]
@@ -24,3 +57,4 @@
     X-Frame-Options = "DENY"
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"

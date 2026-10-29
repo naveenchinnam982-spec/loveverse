@@ -312,7 +312,17 @@
       <div class="card-metric">
         <div class="metric-label">Page Views</div>
         <div class="metric-value" id="valPageViews">0</div>
-        <div class="metric-desc">Total tab & feature views</div>
+        <div class="metric-desc">Total tab &amp; feature views</div>
+      </div>
+      <div class="card-metric" style="border-color: rgba(46,204,113,0.3);">
+        <div class="metric-label" style="color:#2ecc71">YES ❤️ Responses</div>
+        <div class="metric-value" id="valYesResponses" style="color: #2ecc71;">0</div>
+        <div class="metric-desc" style="color:#2ecc71">Said YES to love</div>
+      </div>
+      <div class="card-metric" style="border-color: rgba(231,76,60,0.3);">
+        <div class="metric-label" style="color:#e74c3c">NO 💔 Responses</div>
+        <div class="metric-value" id="valNoResponses" style="color: #e74c3c;">0</div>
+        <div class="metric-desc" style="color:#e74c3c">Said NO to love</div>
       </div>
     </div>
 
@@ -517,6 +527,8 @@
     document.getElementById('valNewVisitors').textContent = ov.newVisitors || 0;
     document.getElementById('valReturningVisitors').textContent = ov.returningVisitors || 0;
     document.getElementById('valPageViews').textContent = ov.pageViews || 0;
+    document.getElementById('valYesResponses').textContent = ov.yesResponses || 0;
+    document.getElementById('valNoResponses').textContent = ov.noResponses || 0;
   }
 
   function renderCharts(ch) {

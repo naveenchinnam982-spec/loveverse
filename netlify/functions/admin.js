@@ -1,9 +1,11 @@
 require('dotenv').config();
+const crypto = require('crypto');
 const { readStoredEvents } = require('./notify-email');
 
 // Configured admin password (default: loveverse2026)
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'loveverse2026';
-const ADMIN_TOKEN = 'lv_adm_' + Buffer.from(ADMIN_PASSWORD).toString('base64');
+// Derive token using HMAC-SHA256 so it is not trivially reversible from base64
+const ADMIN_TOKEN = 'lv_' + crypto.createHmac('sha256', 'loveverse-admin-secret').update(ADMIN_PASSWORD).digest('hex').slice(0, 32);
 
 function isAuthenticated(headers = {}, params = {}) {
   let auth = '';
@@ -34,14 +36,19 @@ function deriveLocation(timezone = '', ip = '') {
 // Compute overview statistics & charts from real events
 function computeStats(events = []) {
   const visitorMap = new Map();
+  // Track unique visitor IDs seen per day for dailyVisitors count
+  const dayVisitorSets = {};
   let totalVisits = 0;
   let instagramVisits = 0;
   let instagramClicks = 0;
   let pageViews = 0;
+  let yesResponses = 0;
+  let noResponses = 0;
 
   const todayStr = new Date().toISOString().slice(0, 10);
-  let todayVisitorsSet = new Set();
-  let newVisitorsSet = new Set();
+  const todayVisitorsSet = new Set();
+  // A visitor is "new" if their first-ever event has is_new_visitor=true
+  const firstSeenSet = new Set();
 
   const sourceCounts = {};
   const deviceCounts = {};
@@ -59,28 +66,32 @@ function computeStats(events = []) {
     const vid = ev.visitor_id || 'UNKNOWN';
     const day = (ev.timestamp || ev.recorded_at || '').slice(0, 10);
 
-    if (ev.event_type === 'new_visitor' || !ev.event_type) {
+    if (ev.event_type === 'new_visitor') {
       totalVisits++;
       if (dayCounts[day] !== undefined) dayCounts[day]++;
       if (day === todayStr) todayVisitorsSet.add(vid);
+
+      const src = ev.source || 'Direct / Unknown';
+      if (src.toLowerCase().includes('instagram')) instagramVisits++;
     }
 
     if (ev.event_type === 'page_view') pageViews++;
     if (ev.event_type === 'instagram_click') instagramClicks++;
+    if (ev.event_type === 'love_response_yes') yesResponses++;
+    if (ev.event_type === 'love_response_no') noResponses++;
 
     const src = ev.source || 'Direct / Unknown';
-    if (src.toLowerCase().includes('instagram')) {
-      if (ev.event_type === 'new_visitor') instagramVisits++;
-    }
-
     sourceCounts[src] = (sourceCounts[src] || 0) + 1;
     if (ev.device) deviceCounts[ev.device] = (deviceCounts[ev.device] || 0) + 1;
     if (ev.browser) browserCounts[ev.browser] = (browserCounts[ev.browser] || 0) + 1;
     if (ev.os) osCounts[ev.os] = (osCounts[ev.os] || 0) + 1;
 
-    // Track visitor
+    // Track unique visitors — first event seen per visitor
     if (!visitorMap.has(vid)) {
-      if (ev.is_new_visitor !== false) newVisitorsSet.add(vid);
+      // Mark as new if explicitly flagged or if it's their first new_visitor event
+      if (ev.is_new_visitor === true || (!firstSeenSet.has(vid) && ev.event_type === 'new_visitor')) {
+        firstSeenSet.add(vid);
+      }
       visitorMap.set(vid, {
         visitor_id: vid,
         first_visit: ev.first_visit || ev.timestamp || ev.recorded_at,
@@ -108,7 +119,8 @@ function computeStats(events = []) {
   });
 
   const uniqueVisitors = visitorMap.size;
-  const newVisitors = newVisitorsSet.size;
+  const newVisitors = firstSeenSet.size;
+  // Returning = unique visitors who were NOT flagged as brand-new on their first event
   const returningVisitors = Math.max(0, uniqueVisitors - newVisitors);
 
   return {
@@ -120,7 +132,9 @@ function computeStats(events = []) {
       instagramClicks,
       newVisitors,
       returningVisitors,
-      pageViews: Math.max(pageViews, totalVisits)
+      pageViews: Math.max(pageViews, totalVisits),
+      yesResponses,
+      noResponses
     },
     charts: {
       byDay: Object.entries(dayCounts).map(([date, count]) => ({ date, count })),
