@@ -40,7 +40,7 @@ async function runTests() {
   };
 
   const resVisitor = await sendEmailNotification(visitorPayload);
-  assert.strictEqual(resVisitor.subject, 'LoveVerse Visitor Notification', 'Subject must be exact');
+  assert.strictEqual(resVisitor.subject, 'LoveVerse — New Website Visitor ❤️', 'Subject must be exact');
   assert(resVisitor.preview.includes('🔔 New LoveVerse Visitor'), 'Must contain visitor header');
   assert(resVisitor.preview.includes('Visitor ID: VIS-TEST001'), 'Must contain Visitor ID');
   assert(resVisitor.preview.includes('Source: Instagram'), 'Must contain Source');
@@ -66,7 +66,7 @@ async function runTests() {
   };
 
   const resYes = await sendEmailNotification(yesPayload);
-  assert.strictEqual(resYes.subject, 'LoveVerse Visitor Notification');
+  assert.strictEqual(resYes.subject, 'LoveVerse — YES ❤️ Response');
   assert(resYes.preview.includes('💖 LoveVerse Response'), 'Must contain YES header');
   assert(resYes.preview.includes('Answer: YES ❤️'), 'Must contain Answer: YES ❤️');
   assert(resYes.preview.includes('Visitor ID: VIS-TEST002'), 'Must contain Visitor ID');
@@ -91,7 +91,7 @@ async function runTests() {
   };
 
   const resNo = await sendEmailNotification(noPayload);
-  assert.strictEqual(resNo.subject, 'LoveVerse Visitor Notification');
+  assert.strictEqual(resNo.subject, 'LoveVerse — NO 💔 Response');
   assert(resNo.preview.includes('💔 LoveVerse Response'), 'Must contain NO header');
   assert(resNo.preview.includes('Answer: NO 💔'), 'Must contain Answer: NO 💔');
   assert(resNo.preview.includes('Visitor ID: VIS-TEST003'), 'Must contain Visitor ID');
@@ -228,7 +228,7 @@ async function runTests() {
     })
   });
   const httpNotifyData = await httpNotifyRes.json();
-  assert.strictEqual(httpNotifyData.subject, 'LoveVerse Visitor Notification');
+  assert.strictEqual(httpNotifyData.subject, 'LoveVerse — New Website Visitor ❤️');
 
   // Test HTTP POST /api/admin/login
   const httpLoginRes = await fetch(`http://localhost:${port}/api/admin/login`, {

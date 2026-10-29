@@ -51,6 +51,12 @@
   to = "/.netlify/functions/admin?action=:action"
   status = 200
 
+# Public website fallback — opens LoveVerse home page directly for all other routes
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
 [[headers]]
   for = "/*"
   [headers.values]

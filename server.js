@@ -28,6 +28,8 @@ async function handleNotify(req, res) {
   try {
     const visitorData = req.body || {};
     visitorData.ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
+    visitorData.geo_raw = req.headers['x-nf-geo'] || '';
+    visitorData.country = req.headers['x-country'] || req.headers['cf-ipcountry'] || '';
     const result = await sendEmailNotification(visitorData);
     res.json(result);
   } catch (err) {

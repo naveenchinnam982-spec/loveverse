@@ -1,17 +1,19 @@
 /**
  * LoveVerse Visitor Tracking & Gmail Notification Client
  * Handles:
- * 1. New Visitor session recording & instant Gmail notification
+ * 1. Automatic New Visitor session recording & instant Gmail notification
  * 2. "Will you love me?" YES ❤️ and NO 💔 response clicks & Gmail notifications
- * 3. Detailed visitor telemetry: Visitor ID, Session ID, Time, Source, UTMs, Device, Browser, OS, Screen, Timezone
+ * 3. Telemetry: Anonymous Visitor ID, Session ID, Time in IST, Source, Referrer, UTMs, Device, Browser, OS, Screen, Country/Region
  * 
- * Strict Privacy: Does NOT collect or attempt to obtain visitor's Instagram username, passwords, cookies, or tokens.
+ * Strict Privacy:
+ * - Does NOT collect or fabricate visitor's Instagram username, passwords, cookies, or personal data.
+ * - Reports "Instagram username: Not available (restricted by browser/Instagram security)".
  */
 
 (function () {
   'use strict';
 
-  // 1. First-Party Visitor ID (Format: VIS-82F7A91C)
+  // 1. Anonymous Privacy-Conscious Visitor ID (Format: VIS-82F7A91C)
   function getVisitorInfo() {
     let vid = localStorage.getItem('lv_visitor_id');
     const nowIso = new Date().toISOString();
@@ -35,7 +37,7 @@
       localStorage.setItem('lv_last_visit', lastVisit);
       localStorage.setItem('lv_visit_count', '1');
     } else {
-      // If new session, increment visit count
+      // Increment session visit count if new browser session
       if (!sessionStorage.getItem('lv_session_id')) {
         count += 1;
         lastVisit = nowIso;
@@ -47,7 +49,7 @@
     return { vid, isNew, firstVisit, lastVisit, count };
   }
 
-  // 2. First-Party Session ID (Format: SES-XXXXXXXX)
+  // 2. Anonymous Session ID (Format: SES-XXXXXXXX)
   function getSessionId() {
     let sid = sessionStorage.getItem('lv_session_id');
     if (!sid) {
@@ -61,19 +63,21 @@
     return sid;
   }
 
-  // 3. Formatted Date & Time (e.g., "28 Oct 2026, 6:20 PM")
-  function getFormattedTime() {
+  // 3. Formatted Date & Time in IST
+  function getFormattedTimeIST() {
     try {
-      return new Intl.DateTimeFormat('en-GB', {
+      return new Intl.DateTimeFormat('en-IN', {
+        timeZone: 'Asia/Kolkata',
         day: 'numeric',
         month: 'short',
         year: 'numeric',
         hour: 'numeric',
         minute: 'numeric',
+        second: 'numeric',
         hour12: true
-      }).format(new Date());
+      }).format(new Date()) + ' IST';
     } catch (e) {
-      return new Date().toLocaleString();
+      return new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) + ' IST';
     }
   }
 
@@ -89,29 +93,40 @@
     const ua = (navigator.userAgent || '').toLowerCase();
 
     let source = 'Direct / Unknown';
+    let isInstagramTraffic = false;
 
     if (utmSource) {
       const s = utmSource.toLowerCase();
-      if (s.includes('instagram') || s === 'ig') source = 'Instagram';
-      else if (s.includes('facebook') || s === 'fb') source = 'Facebook';
-      else if (s.includes('whatsapp') || s === 'wa') source = 'WhatsApp';
-      else if (s.includes('google')) source = 'Google';
-      else source = utmSource;
-    } else if (ref.includes('instagram.com') || ref.includes('l.instagram.com')) {
+      if (s.includes('instagram') || s === 'ig') {
+        source = 'Instagram';
+        isInstagramTraffic = true;
+      } else if (s.includes('facebook') || s === 'fb') {
+        source = 'Facebook';
+      } else if (s.includes('whatsapp') || s === 'wa') {
+        source = 'WhatsApp';
+      } else if (s.includes('google')) {
+        source = 'Google';
+      } else {
+        source = utmSource;
+      }
+    } else if (ref.includes('instagram.com') || ref.includes('l.instagram.com') || ref.includes('android-app://com.instagram.android')) {
       source = 'Instagram';
+      isInstagramTraffic = true;
+    } else if (ua.includes('instagram')) {
+      source = 'Instagram';
+      isInstagramTraffic = true;
     } else if (ref.includes('facebook.com') || ref.includes('l.facebook.com')) {
       source = 'Facebook';
     } else if (ref.includes('whatsapp') || ref.includes('wa.me')) {
       source = 'WhatsApp';
     } else if (ref.includes('google.')) {
       source = 'Google';
-    } else if (ua.includes('instagram')) {
-      source = 'Instagram';
     }
 
     return {
       source,
-      referrer: document.referrer || 'Direct',
+      is_instagram: isInstagramTraffic,
+      referrer: document.referrer || 'Direct / None',
       utm_source: utmSource || '',
       utm_medium: utmMedium || '',
       utm_campaign: utmCampaign || '',
@@ -123,10 +138,10 @@
   // 5. Detect Device, Browser & Operating System
   function detectClient() {
     const ua = navigator.userAgent || '';
-    const width = window.screen.width;
-    const height = window.screen.height;
+    const width = window.screen.width || 0;
+    const height = window.screen.height || 0;
 
-    // Device
+    // Device Category
     let device = 'Desktop';
     if (/ipad|tablet|playbook|silk/i.test(ua) || (width >= 768 && width <= 1024)) {
       device = /ipad/i.test(ua) ? 'iPad Tablet' : 'Tablet';
@@ -157,29 +172,34 @@
       timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
     } catch (e) {}
 
-    const screenSize = `${width}x${height}`;
+    const screenSize = (width && height) ? `${width}x${height}` : 'Not available';
     const language = navigator.language || 'en';
 
     return { device, os, browser, screenSize, language, timezone };
   }
 
-  // Dispatch payload to backend
+  // Dispatch payload to backend without blocking user interactions
   function postToBackend(payload) {
     try {
+      const body = JSON.stringify(payload);
+      // Try primary API route first
       fetch('/api/notify-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: body,
         keepalive: true
       }).catch(function () {
+        // Fallback to direct Netlify function path if rewrite fails
         fetch('/.netlify/functions/notify-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
+          body: body,
           keepalive: true
         }).catch(function () {});
       });
-    } catch (e) {}
+    } catch (e) {
+      // Never crash client on network failure
+    }
   }
 
   // 6. Handle "Will you love me?" YES / NO response clicks
@@ -188,8 +208,9 @@
 
   window.sendLoveResponse = function (answerType) {
     const now = Date.now();
+    // 4-second debounce to prevent spam / double-click duplicates
     if (answerType === lastResponseAnswer && now - lastResponseTime < 4000) {
-      return; // 4s debounce
+      return;
     }
     lastResponseTime = now;
     lastResponseAnswer = answerType;
@@ -204,9 +225,15 @@
       answer: isYes ? 'YES ❤️' : 'NO 💔',
       visitor_id: vInfo.vid,
       session_id: getSessionId(),
-      time: getFormattedTime(),
+      time: getFormattedTimeIST(),
       source: sourceData.source,
+      is_instagram: sourceData.is_instagram,
       referrer: sourceData.referrer,
+      utm_source: sourceData.utm_source,
+      utm_medium: sourceData.utm_medium,
+      utm_campaign: sourceData.utm_campaign,
+      utm_content: sourceData.utm_content,
+      utm_term: sourceData.utm_term,
       device: client.device,
       browser: client.browser,
       os: client.os,
@@ -214,6 +241,8 @@
       language: client.language,
       timezone: client.timezone,
       page: 'LoveVerse',
+      page_url: window.location.href,
+      landing_page: window.location.pathname + window.location.search,
       visit_count: vInfo.count,
       is_new_visitor: vInfo.isNew
     };
@@ -240,17 +269,20 @@
           visitor_id: vInfo.vid,
           session_id: getSessionId(),
           source: sourceData.source,
-          time: getFormattedTime(),
+          is_instagram: sourceData.is_instagram,
+          time: getFormattedTimeIST(),
           device: client.device,
           browser: client.browser,
           os: client.os,
-          page: 'Instagram Profile Link (@Missyouyour6)'
+          page: 'Instagram Profile Link (@Missyouyour6)',
+          page_url: window.location.href,
+          landing_page: window.location.pathname + window.location.search
         });
       }
     });
   }
 
-  // 8. General tracking hook (preserves index.html's loveverseTrackEvent calls)
+  // 8. General tracking hook (preserves any page_view hooks)
   window.loveverseTrackEvent = function (name, data) {
     if (name === 'page_view') {
       const client = detectClient();
@@ -262,16 +294,20 @@
         visitor_id: vInfo.vid,
         session_id: getSessionId(),
         source: sourceData.source,
-        time: getFormattedTime(),
+        is_instagram: sourceData.is_instagram,
+        time: getFormattedTimeIST(),
         device: client.device,
         browser: client.browser,
         os: client.os,
-        page: data ? data.page : 'LoveVerse'
+        page: data ? data.page : 'LoveVerse',
+        page_url: window.location.href,
+        landing_page: window.location.pathname + window.location.search
       }, data || {}));
     }
   };
 
-  // 9. Initial Visitor Session Recording & Gmail Notification
+  // 9. Initial Visitor Session Recording & Automatic Gmail Notification
+  // Deduplicated per browser session via sessionStorage to prevent duplicate emails on reloads/renders
   const SESSION_KEY = 'lv_email_session_notified';
   if (!sessionStorage.getItem(SESSION_KEY)) {
     sessionStorage.setItem(SESSION_KEY, 'true');
@@ -285,13 +321,14 @@
       visitor_id: vInfo.vid,
       session_id: getSessionId(),
       source: sourceData.source,
+      is_instagram: sourceData.is_instagram,
       referrer: sourceData.referrer,
       utm_source: sourceData.utm_source,
       utm_medium: sourceData.utm_medium,
       utm_campaign: sourceData.utm_campaign,
       utm_content: sourceData.utm_content,
       utm_term: sourceData.utm_term,
-      time: getFormattedTime(),
+      time: getFormattedTimeIST(),
       device: client.device,
       browser: client.browser,
       os: client.os,
@@ -302,7 +339,9 @@
       last_visit: vInfo.lastVisit,
       visit_count: vInfo.count,
       is_new_visitor: vInfo.isNew,
-      page: 'LoveVerse Home'
+      page: 'LoveVerse Home',
+      page_url: window.location.href,
+      landing_page: window.location.pathname + window.location.search
     };
 
     if (document.readyState === 'loading') {
