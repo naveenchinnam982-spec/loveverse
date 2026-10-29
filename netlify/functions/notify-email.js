@@ -291,180 +291,88 @@ async function sendEmailNotification(visitorData = {}) {
   // Recipient is ALWAYS naveenchinnam982@gmail.com
   const recipientEmail = FALLBACK_RECIPIENT;
 
-  // Exact Subject line matching specifications
-  let subject = 'LoveVerse — New Visitor ❤️';
-  let headline = '🔔 New LoveVerse Visitor';
-  let badgeColor = '#ff4d6d';
+  // Clean, short & useful Event Titles & Subject lines
+  let subject = 'LoveVerse — Website Visit ❤️';
+  let eventTitle = 'Website Visit';
 
   if (eventType === 'love_response_yes' || (answer && answer.includes('YES'))) {
-    subject = 'LoveVerse — YES ❤️ Response';
-    headline = '💖 LoveVerse YES ❤️ Response';
-    badgeColor = '#e63950';
+    subject = 'LoveVerse — YES ❤️ — Proposal Accepted';
+    eventTitle = 'YES ❤️ — Proposal Accepted';
   } else if (eventType === 'love_response_no' || (answer && answer.includes('NO'))) {
-    subject = 'LoveVerse — NO 💔 Response';
-    headline = '💔 LoveVerse NO 💔 Response';
-    badgeColor = '#c9184a';
+    subject = 'LoveVerse — NO 💔 — Proposal Declined';
+    eventTitle = 'NO 💔 — Proposal Declined';
   }
 
-  // Build Plain Text Content
-  let textContent = '';
-  if (eventType === 'love_response_yes') {
-    textContent = `💖 LoveVerse Response
+  // Simplified Traffic Source: "Instagram", "Direct", or other identifiable source
+  let cleanSource = 'Direct';
+  if (isInstagram) {
+    cleanSource = 'Instagram';
+  } else if (source && source !== 'Direct / Unknown' && source !== 'Direct / None') {
+    cleanSource = source.replace(/\s*\(.*\)$/, '').trim() || 'Direct';
+  }
 
-Event Type: Love Response (YES ❤️)
-Selected Answer: YES ❤️
-Visitor ID: ${visitorId}
-Time: ${time}
-Source: ${source}
-Referrer: ${referrerText}
-Instagram Traffic: ${instagramSourceText}
-Instagram Username: ${instagramUserText}
-Landing Page URL: ${pageUrl}
-Landing Page: ${landingPage}
-Device Category: ${device}
-Browser: ${browser}
-Operating System: ${os}
-Screen: ${screenSize}
-Approximate Location (IP-based): ${geo}
-UTMs: ${utmSummary}
-`;
-  } else if (eventType === 'love_response_no') {
-    textContent = `💔 LoveVerse Response
+  // Simplified Device: "Mobile" or "Desktop"
+  let cleanDevice = 'Desktop';
+  if (/mobile|iphone|android|ipod/i.test(device)) {
+    cleanDevice = 'Mobile';
+  } else if (/tablet|ipad/i.test(device)) {
+    cleanDevice = 'Tablet';
+  }
 
-Event Type: Love Response (NO 💔)
-Selected Answer: NO 💔
-Visitor ID: ${visitorId}
-Time: ${time}
-Source: ${source}
-Referrer: ${referrerText}
-Instagram Traffic: ${instagramSourceText}
-Instagram Username: ${instagramUserText}
-Landing Page URL: ${pageUrl}
-Landing Page: ${landingPage}
-Device Category: ${device}
-Browser: ${browser}
-Operating System: ${os}
-Screen: ${screenSize}
-Approximate Location (IP-based): ${geo}
-UTMs: ${utmSummary}
-`;
-  } else {
-    textContent = `🔔 New LoveVerse Visitor
+  // Reliable location check — only include if legitimately available
+  const hasLocation = geo && geo !== 'Not available' && geo !== 'Unknown' && geo.trim().length > 0;
 
-Event Type: New Visitor
-Visitor ID: ${visitorId}
-Time: ${time}
-Source: ${source}
-Referrer: ${referrerText}
-Instagram Traffic: ${instagramSourceText}
-Instagram Username: ${instagramUserText}
-Page: ${page}
-Landing Page URL: ${pageUrl}
-Landing Page: ${landingPage}
-Device Category: ${device}
-Browser: ${browser}
-Operating System: ${os}
-Screen: ${screenSize}
-Approximate Location (IP-based): ${geo}
-UTMs: ${utmSummary}
-`;
+  // Build Short, Useful Plain Text Content
+  let textContent = `💖 LoveVerse Notification\n\nEvent: ${eventTitle}\nTime: ${time}\nTraffic source: ${cleanSource}\n`;
+  if (hasLocation) {
+    textContent += `Approximate location: ${geo} (approximate)\n`;
+  }
+  if (cleanDevice) {
+    textContent += `Device: ${cleanDevice}\n`;
   }
 
   // Format Escaped HTML Template
-  const safeVisitorId = escapeHtml(visitorId);
-  const safeSource = escapeHtml(source);
-  const safeReferrer = escapeHtml(referrerText);
   const safeTime = escapeHtml(time);
-  const safeDevice = escapeHtml(device);
-  const safeBrowser = escapeHtml(browser);
-  const safeOs = escapeHtml(os);
-  const safeScreen = escapeHtml(screenSize);
+  const safeCleanSource = escapeHtml(cleanSource);
+  const safeCleanDevice = escapeHtml(cleanDevice);
   const safeGeo = escapeHtml(geo);
-  const safePageUrl = escapeHtml(pageUrl);
-  const safeLanding = escapeHtml(landingPage);
-  const safeAnswer = escapeHtml(answer);
-  const safeHeadline = escapeHtml(headline);
-  const safeIgSource = escapeHtml(instagramSourceText);
-  const safeIgUser = escapeHtml(instagramUserText);
-  const safeUtm = escapeHtml(utmSummary);
 
   const htmlContent = `
-  <div style="font-family:'Segoe UI',system-ui,sans-serif;max-width:580px;margin:0 auto;background:#1a0035;color:#fff0f3;border-radius:18px;overflow:hidden;border:1px solid rgba(255,133,161,0.3);box-shadow:0 8px 24px rgba(0,0,0,0.5);">
-    <div style="background:linear-gradient(135deg,#c9184a,#7b2d8b);padding:22px;text-align:center;">
-      <h1 style="margin:0;font-size:24px;color:#fff;font-family:Georgia,serif;letter-spacing:1px;">💖 LoveVerse</h1>
-      <p style="margin:6px 0 0;font-size:16px;color:#ffb3c1;font-weight:700;">${safeHeadline}</p>
+  <div style="font-family:'Segoe UI',-apple-system,system-ui,sans-serif;max-width:480px;margin:0 auto;background:#1a0035;color:#fff0f3;border-radius:18px;overflow:hidden;border:1px solid rgba(255,133,161,0.25);box-shadow:0 10px 30px rgba(0,0,0,0.45);">
+    <div style="background:linear-gradient(135deg,#c9184a,#7b2d8b);padding:20px;text-align:center;">
+      <h1 style="margin:0;font-size:22px;color:#fff;font-family:Georgia,serif;letter-spacing:1px;">💖 LoveVerse</h1>
+      <p style="margin:6px 0 0;font-size:15px;color:#ffb3c1;font-weight:700;">${escapeHtml(eventTitle)}</p>
     </div>
     
-    <div style="padding:24px 22px;">
-      ${safeAnswer ? `
-      <div style="text-align:center;margin-bottom:20px;background:rgba(255,255,255,0.06);border:2px solid ${badgeColor};border-radius:14px;padding:16px;">
-        <div style="font-size:12px;color:#f8c630;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;margin-bottom:4px;">Selected Answer:</div>
-        <div style="font-size:26px;font-weight:900;color:#fff;">${safeAnswer}</div>
-      </div>
-      ` : ''}
-
+    <div style="padding:22px 20px;">
       <table style="width:100%;border-collapse:collapse;font-size:14px;">
         <tr style="border-bottom:1px solid rgba(255,133,161,0.15);">
-          <td style="padding:10px 0;color:#c9899f;font-weight:600;">Event Type:</td>
-          <td style="padding:10px 0;font-weight:700;color:#ff85a1;text-align:right;">${escapeHtml(eventType === 'new_visitor' ? 'New Visitor' : (safeAnswer || eventType))}</td>
+          <td style="padding:10px 0;color:#c9899f;font-weight:600;width:40%;">Event:</td>
+          <td style="padding:10px 0;font-weight:700;color:#ff85a1;text-align:right;">${escapeHtml(eventTitle)}</td>
         </tr>
         <tr style="border-bottom:1px solid rgba(255,133,161,0.15);">
-          <td style="padding:10px 0;color:#c9899f;font-weight:600;">Visitor ID:</td>
-          <td style="padding:10px 0;font-weight:700;color:#ff85a1;text-align:right;"><code style="background:rgba(255,77,109,0.15);padding:2px 8px;border-radius:6px;">${safeVisitorId}</code></td>
-        </tr>
-        <tr style="border-bottom:1px solid rgba(255,133,161,0.15);">
-          <td style="padding:10px 0;color:#c9899f;font-weight:600;">Visit Date & Time (IST):</td>
+          <td style="padding:10px 0;color:#c9899f;font-weight:600;">Time:</td>
           <td style="padding:10px 0;text-align:right;color:#fff0f3;font-weight:600;">${safeTime}</td>
         </tr>
         <tr style="border-bottom:1px solid rgba(255,133,161,0.15);">
-          <td style="padding:10px 0;color:#c9899f;font-weight:600;">Referral Source:</td>
-          <td style="padding:10px 0;font-weight:700;color:#f8c630;text-align:right;">${safeSource}</td>
+          <td style="padding:10px 0;color:#c9899f;font-weight:600;">Traffic source:</td>
+          <td style="padding:10px 0;font-weight:700;color:#f8c630;text-align:right;">${safeCleanSource}</td>
         </tr>
+        ${hasLocation ? `
         <tr style="border-bottom:1px solid rgba(255,133,161,0.15);">
-          <td style="padding:10px 0;color:#c9899f;font-weight:600;">Referrer URL:</td>
-          <td style="padding:10px 0;text-align:right;color:#fff0f3;word-break:break-all;font-size:13px;">${safeReferrer}</td>
-        </tr>
-        <tr style="border-bottom:1px solid rgba(255,133,161,0.15);">
-          <td style="padding:10px 0;color:#c9899f;font-weight:600;">Instagram Traffic Detected:</td>
-          <td style="padding:10px 0;text-align:right;color:#ff85a1;font-weight:700;">${safeIgSource}</td>
-        </tr>
-        <tr style="border-bottom:1px solid rgba(255,133,161,0.15);">
-          <td style="padding:10px 0;color:#c9899f;font-weight:600;">Instagram Username:</td>
-          <td style="padding:10px 0;text-align:right;color:#c9899f;font-style:italic;font-size:13px;">${safeIgUser}</td>
-        </tr>
-        <tr style="border-bottom:1px solid rgba(255,133,161,0.15);">
-          <td style="padding:10px 0;color:#c9899f;font-weight:600;">Landing Page URL:</td>
-          <td style="padding:10px 0;text-align:right;color:#fff0f3;word-break:break-all;font-size:13px;">${safePageUrl}</td>
-        </tr>
-        <tr style="border-bottom:1px solid rgba(255,133,161,0.15);">
-          <td style="padding:10px 0;color:#c9899f;font-weight:600;">Device Category:</td>
-          <td style="padding:10px 0;text-align:right;color:#fff0f3;">${safeDevice}</td>
-        </tr>
-        <tr style="border-bottom:1px solid rgba(255,133,161,0.15);">
-          <td style="padding:10px 0;color:#c9899f;font-weight:600;">Browser:</td>
-          <td style="padding:10px 0;text-align:right;color:#fff0f3;">${safeBrowser}</td>
-        </tr>
-        <tr style="border-bottom:1px solid rgba(255,133,161,0.15);">
-          <td style="padding:10px 0;color:#c9899f;font-weight:600;">Operating System:</td>
-          <td style="padding:10px 0;text-align:right;color:#fff0f3;">${safeOs}</td>
-        </tr>
-        <tr style="border-bottom:1px solid rgba(255,133,161,0.15);">
-          <td style="padding:10px 0;color:#c9899f;font-weight:600;">Screen Resolution:</td>
-          <td style="padding:10px 0;text-align:right;color:#fff0f3;">${safeScreen}</td>
-        </tr>
-        <tr style="border-bottom:1px solid rgba(255,133,161,0.15);">
-          <td style="padding:10px 0;color:#c9899f;font-weight:600;">Approximate Location:</td>
-          <td style="padding:10px 0;text-align:right;color:#fff0f3;">${safeGeo} <span style="font-size:11px;color:#c9899f;">(IP-based approximate)</span></td>
-        </tr>
+          <td style="padding:10px 0;color:#c9899f;font-weight:600;">Approximate location:</td>
+          <td style="padding:10px 0;text-align:right;color:#fff0f3;">${safeGeo} <span style="font-size:11px;color:#c9899f;">(approximate)</span></td>
+        </tr>` : ''}
+        ${cleanDevice ? `
         <tr>
-          <td style="padding:10px 0;color:#c9899f;font-weight:600;">UTM Campaign:</td>
-          <td style="padding:10px 0;text-align:right;color:#f8c630;font-size:12px;">${safeUtm}</td>
-        </tr>
+          <td style="padding:10px 0;color:#c9899f;font-weight:600;">Device:</td>
+          <td style="padding:10px 0;text-align:right;color:#fff0f3;">${safeCleanDevice}</td>
+        </tr>` : ''}
       </table>
     </div>
 
     <div style="background:rgba(255,255,255,0.03);padding:12px;text-align:center;font-size:12px;color:#c9899f;border-top:1px solid rgba(255,133,161,0.15);">
-      LoveVerse Automatic Notification · Sent to ${escapeHtml(recipientEmail)}
+      LoveVerse Notification · Sent to ${escapeHtml(recipientEmail)}
     </div>
   </div>`;
 

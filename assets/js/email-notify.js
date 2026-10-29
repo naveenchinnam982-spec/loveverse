@@ -205,16 +205,19 @@
     }
   }
 
-  // 6. Handle "Will you love me?" YES / NO response clicks
   let lastResponseTime = 0;
   let lastResponseAnswer = '';
+  let notifiedYesSession = false;
+  let notifiedNoSession = false;
 
   window.sendLoveResponse = function (answerType) {
+    const isYes = answerType.toLowerCase() === 'yes';
+    if (isYes && notifiedYesSession) return;
+    if (!isYes && notifiedNoSession) return;
+    if (isYes) notifiedYesSession = true;
+    else notifiedNoSession = true;
+
     const now = Date.now();
-    // 4-second debounce to prevent spam / double-click duplicates
-    if (answerType === lastResponseAnswer && now - lastResponseTime < 4000) {
-      return;
-    }
     lastResponseTime = now;
     lastResponseAnswer = answerType;
 

@@ -40,14 +40,10 @@ async function runTests() {
   };
 
   const resVisitor = await sendEmailNotification(visitorPayload);
-  assert.strictEqual(resVisitor.subject, 'LoveVerse — New Visitor ❤️', 'Subject must be exact');
-  assert(resVisitor.preview.includes('🔔 New LoveVerse Visitor'), 'Must contain visitor header');
-  assert(resVisitor.preview.includes('Visitor ID: VIS-TEST001'), 'Must contain Visitor ID');
-  assert(resVisitor.preview.includes('Source: Instagram'), 'Must contain Source');
-  assert(resVisitor.preview.includes('Device Category: Mobile'), 'Must contain Device Category');
-  assert(resVisitor.preview.includes('Browser: Instagram In-App Browser'), 'Must contain Browser');
-  assert(resVisitor.preview.includes('Operating System: iOS'), 'Must contain Operating System');
-  assert(resVisitor.preview.includes('Page: LoveVerse Home'), 'Must contain Page');
+  assert.strictEqual(resVisitor.subject, 'LoveVerse — Website Visit ❤️', 'Subject must be exact');
+  assert(resVisitor.preview.includes('Event: Website Visit'), 'Must contain event');
+  assert(resVisitor.preview.includes('Traffic source: Instagram'), 'Must contain Traffic source');
+  assert(resVisitor.preview.includes('Device: Mobile'), 'Must contain Device');
   console.log('Generated Preview:\n' + resVisitor.preview);
   console.log('✅ New visitor notification verified successfully.');
 
@@ -66,13 +62,10 @@ async function runTests() {
   };
 
   const resYes = await sendEmailNotification(yesPayload);
-  assert.strictEqual(resYes.subject, 'LoveVerse — YES ❤️ Response');
-  assert(resYes.preview.includes('💖 LoveVerse Response'), 'Must contain YES header');
-  assert(resYes.preview.includes('Answer: YES ❤️'), 'Must contain Answer: YES ❤️');
-  assert(resYes.preview.includes('Visitor ID: VIS-TEST002'), 'Must contain Visitor ID');
-  assert(resYes.preview.includes('Source: Instagram'), 'Must contain Source');
-  assert(resYes.preview.includes('Device Category: Android'), 'Must contain Device Category');
-  assert(resYes.preview.includes('Browser: Chrome'), 'Must contain Browser');
+  assert.strictEqual(resYes.subject, 'LoveVerse — YES ❤️ — Proposal Accepted');
+  assert(resYes.preview.includes('Event: YES ❤️ — Proposal Accepted'), 'Must contain YES header');
+  assert(resYes.preview.includes('Traffic source: Instagram'), 'Must contain Traffic source');
+  assert(resYes.preview.includes('Device: Mobile'), 'Must contain Device');
   console.log('Generated Preview:\n' + resYes.preview);
   console.log('✅ YES ❤️ response notification verified successfully.');
 
@@ -91,13 +84,10 @@ async function runTests() {
   };
 
   const resNo = await sendEmailNotification(noPayload);
-  assert.strictEqual(resNo.subject, 'LoveVerse — NO 💔 Response');
-  assert(resNo.preview.includes('💔 LoveVerse Response'), 'Must contain NO header');
-  assert(resNo.preview.includes('Answer: NO 💔'), 'Must contain Answer: NO 💔');
-  assert(resNo.preview.includes('Visitor ID: VIS-TEST003'), 'Must contain Visitor ID');
-  assert(resNo.preview.includes('Source: Direct / Unknown'), 'Must contain Source');
-  assert(resNo.preview.includes('Device Category: Desktop'), 'Must contain Device Category');
-  assert(resNo.preview.includes('Browser: Firefox'), 'Must contain Browser');
+  assert.strictEqual(resNo.subject, 'LoveVerse — NO 💔 — Proposal Declined');
+  assert(resNo.preview.includes('Event: NO 💔 — Proposal Declined'), 'Must contain NO header');
+  assert(resNo.preview.includes('Traffic source: Direct'), 'Must contain Traffic source');
+  assert(resNo.preview.includes('Device: Desktop'), 'Must contain Device');
   console.log('Generated Preview:\n' + resNo.preview);
   console.log('✅ NO 💔 response notification verified successfully.');
 
@@ -228,7 +218,7 @@ async function runTests() {
     })
   });
   const httpNotifyData = await httpNotifyRes.json();
-  assert.strictEqual(httpNotifyData.subject, 'LoveVerse — New Visitor ❤️');
+  assert.strictEqual(httpNotifyData.subject, 'LoveVerse — Website Visit ❤️');
 
   // Test HTTP POST /api/admin/login
   const httpLoginRes = await fetch(`http://localhost:${port}/api/admin/login`, {

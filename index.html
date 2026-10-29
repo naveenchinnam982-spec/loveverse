@@ -286,6 +286,46 @@ textarea.inp{resize:none}
 .surprise-modal.active{display:flex;animation:popUp .35s ease}
 .surprise-card{background:linear-gradient(135deg,#2e0523,#4d0838);border:2px solid #ff4d6d;border-radius:24px;padding:32px 24px;max-width:480px;width:100%;text-align:center;position:relative;box-shadow:0 14px 45px rgba(201,24,74,.5)}
 
+/* ===== ADVANCED YES CELEBRATION STYLES ===== */
+.yes-celebration-wrap{position:relative;z-index:10;max-width:720px;width:100%;margin:10px auto 36px;text-align:center;padding:36px 20px;border-radius:28px;background:radial-gradient(circle at 50% 20%,rgba(201,24,74,.25) 0%,rgba(123,45,139,.18) 50%,rgba(26,0,53,.9) 100%);border:2px solid rgba(255,77,109,.45);box-shadow:0 16px 60px rgba(201,24,74,.4),inset 0 0 40px rgba(255,77,109,.2);overflow:hidden;animation:fadeInScale .7s ease-out}
+@keyframes fadeInScale{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+.yes-heart-center{font-size:84px;display:inline-block;animation:heartCelebrationBeat 1.8s ease-in-out infinite;filter:drop-shadow(0 0 35px rgba(255,77,109,.85));margin-bottom:12px}
+@keyframes heartCelebrationBeat{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+.yes-tagline{font-size:12px;color:#f8c630;letter-spacing:3px;text-transform:uppercase;font-weight:800;margin-bottom:8px}
+.yes-title{font-size:clamp(24px,5.5vw,42px);font-weight:900;font-family:Georgia,serif;background:linear-gradient(135deg,#ff4d6d,#f8c630,#ffb3c1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.2;margin:12px 0 14px}
+.yes-subtitle{font-family:Georgia,serif;font-size:clamp(16px,3.5vw,21px);color:#ffe0e8;font-weight:700;margin-bottom:14px;line-height:1.5}
+.yes-desc{font-size:14.5px;color:#ffb3c1;max-width:540px;margin:0 auto 22px;line-height:1.7}
+.yes-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+
+/* Rose Petals */
+.petals-layer{position:fixed;inset:0;pointer-events:none;z-index:9;overflow:hidden}
+.rose-petal{position:absolute;top:-50px;pointer-events:none;will-change:transform;animation:swayPetal linear forwards}
+@keyframes swayPetal{
+  0%{transform:translate3d(0,0,0) rotate(0deg) scale(.9);opacity:0}
+  15%{opacity:.92}
+  50%{transform:translate3d(50px,50vh,0) rotate(180deg) scale(1.05)}
+  100%{transform:translate3d(-40px,105vh,0) rotate(360deg) scale(.85);opacity:0}
+}
+
+/* ===== EMOTIONAL NO MOOD-OFF STYLES ===== */
+.no-moodoff-wrap{position:relative;z-index:10;max-width:680px;width:100%;margin:10px auto 36px;text-align:center;padding:36px 20px;border-radius:28px;background:radial-gradient(circle at 50% 25%,rgba(30,42,65,.6) 0%,rgba(18,24,38,.88) 60%,rgba(10,14,22,.97) 100%);border:1.5px solid rgba(130,160,200,.28);box-shadow:0 16px 50px rgba(0,0,0,.65),inset 0 0 35px rgba(50,80,130,.15);overflow:hidden;animation:fadeInScale .7s ease-out}
+.no-heart-center{font-size:76px;display:inline-block;animation:slowMelancholyPulse 2.8s ease-in-out infinite;filter:drop-shadow(0 0 20px rgba(120,150,200,.35));margin-bottom:14px;opacity:.85}
+@keyframes slowMelancholyPulse{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(.94);opacity:.6}}
+.no-tagline{font-size:12px;color:#8fa3bf;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-bottom:8px}
+.no-title{font-size:clamp(21px,5vw,32px);font-weight:800;font-family:Georgia,serif;color:#e2e8f0;line-height:1.35;margin:10px 0 12px;min-height:36px}
+.no-subtitle{font-family:Georgia,serif;font-size:clamp(15px,3.2vw,18px);color:#cbd5e1;font-weight:600;margin-bottom:14px;line-height:1.6;min-height:28px}
+.no-desc{font-size:13.5px;color:#94a3b8;max-width:500px;margin:0 auto 22px;line-height:1.7}
+.no-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+
+/* Rain Streaks */
+.rain-layer{position:fixed;inset:0;pointer-events:none;z-index:9;overflow:hidden}
+.rain-drop{position:absolute;top:-30px;width:1.5px;height:24px;background:linear-gradient(to bottom,rgba(255,255,255,0),rgba(160,195,240,.65));pointer-events:none;will-change:transform;animation:dropFall linear forwards}
+@keyframes dropFall{
+  0%{transform:translate3d(0,0,0);opacity:0}
+  20%{opacity:.7}
+  100%{transform:translate3d(-20px,105vh,0);opacity:0}
+}
+
 /* ===== ACCESSIBILITY PREFERS-REDUCED-MOTION ===== */
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {
@@ -307,6 +347,12 @@ textarea.inp{resize:none}
 
 <!-- Confetti -->
 <div id="confetti-layer"></div>
+
+<!-- Falling Rose Petals Layer -->
+<div id="petals-layer" class="petals-layer"></div>
+
+<!-- Falling Rain Layer -->
+<div id="rain-layer" class="rain-layer"></div>
 
 <!-- NAV -->
 <nav id="nav">
@@ -576,6 +622,8 @@ function renderPage(){
   };
   (map[currentPage]||renderHome)();
   // Post-render hooks
+  if(currentPage==="home"&&loveAnswer==="yes")initYesCelebration();
+  if(currentPage==="home"&&loveAnswer==="no")initNoExperience();
   if(currentPage==="wheel")drawWheel(wheelRot);
   if(currentPage==="countdown")startCdTick();
   if(currentPage==="lqGame"&&!lqDone)startLQTimer();
@@ -684,24 +732,8 @@ function profileHTML(){return `
 </div>`;}
 
 function bannerHTML(){
-  if(loveAnswer==="yes") return `
-  <div class="card-rose pop-anim" style="text-align:center;margin-bottom:26px;position:relative;overflow:hidden">
-    <div class="banner-dec">${"💖".repeat(12)}</div>
-    <div style="position:relative;z-index:1">
-      <div class="hb-anim" style="font-size:72px;display:inline-block">💖</div>
-      <div style="font-size:clamp(22px,5vw,36px);font-weight:900;font-family:Georgia,serif;background:linear-gradient(135deg,#ff4d6d,#f8c630);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:10px 0">I Love You Too! 💖</div>
-      <p class="muted" style="font-size:15px;margin-bottom:18px">You just made my heart skip a beat! 🥺✨</p>
-      <button class="btn-outline" onclick="loveAnswer=null;renderPage()">Ask again 🔄</button>
-    </div>
-  </div>`;
-  if(loveAnswer==="no") return `
-  <div class="card-rose pop-anim" style="text-align:center;margin-bottom:26px">
-    <div style="font-size:64px">😤</div>
-    <div style="font-size:clamp(20px,4vw,30px);color:#ff4d6d;font-weight:900;margin:10px 0">Denied!! 💔</div>
-    <p class="muted" style="margin-bottom:6px">You really clicked NO after all that? 😤</p>
-    <p class="muted" style="font-size:13px;margin-bottom:18px">Fine. I didn't want your love anyway... 🙄 (I'm lying 🥺)</p>
-    <button class="btn-outline" onclick="loveAnswer=null;renderPage()">Give me another chance 🥺</button>
-  </div>`;
+  if(loveAnswer==="yes") return renderYesCelebrationHTML();
+  if(loveAnswer==="no") return renderNoExperienceHTML();
   return `
   <div class="card-rose" style="text-align:center;margin-bottom:26px;position:relative;overflow:hidden">
     <div class="banner-dec">${"💖".repeat(14)}</div>
@@ -714,20 +746,275 @@ function bannerHTML(){
         <button class="btn-yes" id="yes-btn" onclick="tryYes()">YES ❤️</button>
       </div>
     </div>
-  </div>`;}
+  </div>`;
+}
 
+// ── ADVANCED YES PROPOSAL CELEBRATION ────────────────────────────
+function renderYesCelebrationHTML(){
+  return `
+  <div class="yes-celebration-wrap" id="yesCelebrationWrap">
+    <!-- Glowing Centerpiece Heart -->
+    <div class="yes-heart-center">💖</div>
+    
+    <div class="yes-tagline">✨ Proposal Accepted ✨</div>
+    <h2 class="yes-title">You just made my heart the happiest ❤️</h2>
+    <div class="yes-subtitle">This is the beginning of our beautiful story 💖</div>
+    
+    <p class="yes-desc">
+      From the moment you entered my world, everything became brighter, warmer, and full of poetry. 
+      Every single heartbeat from today is a promise of love, laughter, and endless magical memories together.
+    </p>
+
+    <!-- Romantic Centerpiece Badge -->
+    <div style="background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,77,109,0.35);border-radius:20px;padding:16px 20px;max-width:440px;margin:0 auto 24px;display:flex;align-items:center;justify-content:center;gap:12px;box-shadow:0 8px 24px rgba(201,24,74,.25)">
+      <span style="font-size:30px">💍</span>
+      <div style="text-align:left">
+        <div style="font-size:15px;font-weight:800;color:#f8c630">Forever & Always</div>
+        <div style="font-size:12px;color:#ffb3c1">Naveen & You · Sealed with all my love</div>
+      </div>
+    </div>
+
+    <!-- Music & Celebration Controls -->
+    <div class="yes-actions">
+      <button class="btn-love sm" id="yesMelodyBtn" onclick="toggleRomanticMusic()">
+        🎵 <span id="yesMelodyBtnText">${musicPlaying ? 'Pause Melody ⏸️' : 'Play Romantic Melody ▶️'}</span>
+      </button>
+      <button class="btn-love gold sm" onclick="replayYesCelebration()">
+        ✨ Replay Celebration
+      </button>
+      <button class="btn-outline sm" onclick="returnToHome()">
+        💖 Back to LoveVerse
+      </button>
+    </div>
+  </div>`;
+}
+
+// ── EMOTIONAL NO MOOD-OFF EXPERIENCE ────────────────────────────
+function renderNoExperienceHTML(){
+  return `
+  <div class="no-moodoff-wrap" id="noMoodoffWrap">
+    <!-- Slowly Beating Dimmed Heart -->
+    <div class="no-heart-center">💔</div>
+    
+    <div class="no-tagline">🌙 Honest Feelings Respected 🌙</div>
+    <h2 class="no-title" id="noTypeText">Oh… 💔 I was hoping for a different answer.</h2>
+    <div class="no-subtitle" id="noTypeSub">It’s okay. Every feeling deserves honesty.</div>
+    
+    <p class="no-desc">
+      Thank you for being true to your heart. Love can never be rushed or forced, and your feelings are deeply valued and respected. No pressure, ever.
+    </p>
+
+    <!-- Quiet Atmosphere & Return Controls -->
+    <div class="no-actions">
+      <button class="btn-outline sm" id="noRainAmbientBtn" onclick="toggleRainAmbient()">
+        🌧️ Soft Rain Atmosphere
+      </button>
+      <button class="btn-love sm" onclick="returnToProposal()" style="background:linear-gradient(135deg,#c9184a,#7b2d8b);padding:10px 24px">
+        Give it another thought? 💗
+      </button>
+      <button class="btn-outline sm" onclick="returnToHome()">
+        Maybe later 🌙
+      </button>
+    </div>
+  </div>`;
+}
+
+// ── PROPOSAL HANDLERS ────────────────────────────────────────────
 function tryNo(){
   if(window.sendLoveResponse) window.sendLoveResponse('no');
   loveAnswer="no";
   renderPage();
+  initNoExperience();
 }
 
 function tryYes(){
   if(window.sendLoveResponse) window.sendLoveResponse('yes');
   loveAnswer="yes";
+  renderPage();
+  initYesCelebration();
+}
+
+function replayYesCelebration(){
+  initYesCelebration();
+}
+
+function returnToProposal(){
+  stopRainAmbient();
+  cleanupPetalsAndRain();
+  loveAnswer=null;
+  renderPage();
+}
+
+function returnToHome(){
+  stopRainAmbient();
+  cleanupPetalsAndRain();
+  loveAnswer=null;
+  renderPage();
+}
+
+function initYesCelebration(){
+  cleanupPetalsAndRain();
   fireConfetti();
   triggerCelebrationHearts();
-  renderPage();
+  generateRosePetals();
+}
+
+function initNoExperience(){
+  cleanupPetalsAndRain();
+  generateRaindrops();
+  typewriterNo();
+}
+
+function cleanupPetalsAndRain(){
+  const p = $("petals-layer");
+  if(p) p.innerHTML = "";
+  const r = $("rain-layer");
+  if(r) r.innerHTML = "";
+}
+
+function generateRosePetals(){
+  const container = $("petals-layer");
+  if(!container) return;
+  container.innerHTML = "";
+  if(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const count = window.innerWidth < 600 ? 16 : 28;
+  for(let i = 0; i < count; i++){
+    const petal = document.createElement("div");
+    petal.className = "rose-petal";
+    const left = Math.random() * 100;
+    const dur = 4.5 + Math.random() * 4.5;
+    const delay = Math.random() * 3;
+    const size = 16 + Math.random() * 18;
+    petal.style.left = left + "vw";
+    petal.style.animationDuration = dur + "s";
+    petal.style.animationDelay = delay + "s";
+    petal.style.width = size + "px";
+    petal.style.height = (size * 1.3) + "px";
+    petal.innerHTML = `<svg viewBox="0 0 30 40" width="100%" height="100%">
+      <path d="M15 0 C25 8, 30 22, 20 35 C15 40, 10 38, 5 32 C-2 22, 2 8, 15 0 Z" fill="url(#petalGrad)" opacity="0.9"/>
+      <defs>
+        <linearGradient id="petalGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#ff4d6d"/>
+          <stop offset="60%" stop-color="#c9184a"/>
+          <stop offset="100%" stop-color="#590d22"/>
+        </linearGradient>
+      </defs>
+    </svg>`;
+    container.appendChild(petal);
+  }
+}
+
+function generateRaindrops(){
+  const container = $("rain-layer");
+  if(!container) return;
+  container.innerHTML = "";
+  if(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const count = window.innerWidth < 600 ? 25 : 45;
+  for(let i = 0; i < count; i++){
+    const drop = document.createElement("div");
+    drop.className = "rain-drop";
+    const left = Math.random() * 100;
+    const dur = 1.1 + Math.random() * 1.4;
+    const delay = Math.random() * 2;
+    drop.style.left = left + "vw";
+    drop.style.animationDuration = dur + "s";
+    drop.style.animationDelay = delay + "s";
+    container.appendChild(drop);
+  }
+}
+
+function typewriterNo(){
+  const titleEl = $("noTypeText");
+  const subEl = $("noTypeSub");
+  const text1 = "Oh… 💔 I was hoping for a different answer.";
+  const text2 = "It’s okay. Every feeling deserves honesty.";
+  if (!titleEl || !subEl) return;
+  
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    titleEl.textContent = text1;
+    subEl.textContent = text2;
+    return;
+  }
+  
+  titleEl.textContent = "";
+  subEl.textContent = "";
+  let i = 0;
+  function t1(){
+    if(i < text1.length){
+      titleEl.textContent += text1.charAt(i);
+      i++;
+      setTimeout(t1, 38);
+    } else {
+      setTimeout(t2, 350);
+    }
+  }
+  let j = 0;
+  function t2(){
+    if(j < text2.length){
+      subEl.textContent += text2.charAt(j);
+      j++;
+      setTimeout(t2, 32);
+    }
+  }
+  t1();
+}
+
+// ── RAIN AMBIENT AUDIO SYNTHESIZER ──────────────────────────────
+let rainAmbientNode = null;
+let rainAmbientPlaying = false;
+
+function toggleRainAmbient(){
+  initAudio();
+  if(!audioCtx) return;
+  if(audioCtx.state === 'suspended'){
+    audioCtx.resume();
+  }
+  if(rainAmbientPlaying){
+    stopRainAmbient();
+  } else {
+    rainAmbientPlaying = true;
+    startRainAmbient();
+    const btn = $("noRainAmbientBtn");
+    if(btn) btn.innerHTML = "⏸️ Pause Rain Atmosphere";
+  }
+}
+
+function startRainAmbient(){
+  if(!audioCtx) return;
+  try {
+    const freqs = [146.83, 220.00, 349.23]; // Gentle D-minor ambient chord
+    const gainNode = audioCtx.createGain();
+    gainNode.gain.setValueAtTime(0.035, audioCtx.currentTime);
+    
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(450, audioCtx.currentTime);
+
+    const oscs = freqs.map(f => {
+      const o = audioCtx.createOscillator();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(f, audioCtx.currentTime);
+      o.connect(filter);
+      o.start();
+      return o;
+    });
+
+    filter.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    rainAmbientNode = { oscs, gainNode };
+  } catch(e){}
+}
+
+function stopRainAmbient(){
+  if(rainAmbientNode){
+    try {
+      rainAmbientNode.oscs.forEach(o => o.stop());
+    } catch(e){}
+    rainAmbientNode = null;
+  }
+  rainAmbientPlaying = false;
+  const btn = $("noRainAmbientBtn");
+  if(btn) btn.innerHTML = "🌧️ Soft Rain Atmosphere";
 }
 
 // ╔══════════════════════════════════════════════════════════════════╗
@@ -1422,6 +1709,8 @@ function updateMusicUI() {
   const icon = $("musicIcon");
   const text = $("musicText");
   const bars = $("musicBars");
+  const yesText = $("yesMelodyBtnText");
+  if (yesText) yesText.textContent = musicPlaying ? "Pause Melody ⏸️" : "Play Romantic Melody ▶️";
   if (!btn) return;
   if (musicPlaying) {
     btn.classList.add("playing");
